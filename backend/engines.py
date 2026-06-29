@@ -137,6 +137,17 @@ def recalculate_assessment_risks(db: Session, assessment_id: int):
         risk_score = min(100.0, (total_residual / total_inherent) * 100)
         
     assessment.risk_score = risk_score
+    
+    # Calculate Compliance Percentage dynamically
+    applicable_findings = [f for f in findings if f.status != "NOT_APPLICABLE"]
+    if len(applicable_findings) > 0:
+        passed_count = len([f for f in applicable_findings if f.status == "PASS"])
+        partial_count = len([f for f in applicable_findings if f.status == "PARTIALLY_COMPLIANT"])
+        compliance_pct = ((passed_count + 0.5 * partial_count) / len(applicable_findings)) * 100
+    else:
+        compliance_pct = 100.0
+        
+    assessment.compliance_percentage = compliance_pct
     db.commit()
 
 
