@@ -225,18 +225,18 @@ class TestGRCEngine(unittest.TestCase):
         self.session.commit()
         
         # Import report functions
-        from reports import generate_csv_report, generate_excel_tsv_report, generate_risk_register_csv, generate_remediation_plan_json
+        from reports import generate_csv_report, generate_html_report, generate_risk_register_csv, generate_remediation_plan_json
         
         csv_data = generate_csv_report(self.session, assessment.id)
-        self.assertIn("UTSCF COMPLIANCE ASSESSMENT REPORT", csv_data)
+        self.assertIn("UTSGRCP ENTERPRISE COMPLIANCE AUDIT REPORT", csv_data)
         self.assertIn("UTSCF-REP-01", csv_data)
         
-        tsv_data = generate_excel_tsv_report(self.session, assessment.id)
-        self.assertIn("UTSCF COMPLIANCE ASSESSMENT REPORT (EXCEL FORMAT)", tsv_data)
+        html_data = generate_html_report(self.session, assessment.id)
+        self.assertIn("UTSGRCP COMPLIANCE AUDIT REPORT", html_data)
         
         org = self.session.query(Organization).first()
         rr_data = generate_risk_register_csv(self.session, org.id)
-        self.assertIn("UTSCF SYSTEM RISK REGISTER", rr_data)
+        self.assertIn("UTSGRCP ENTERPRISE SYSTEM RISK REGISTER", rr_data)
         
         remediation = generate_remediation_plan_json(self.session, assessment.id)
         self.assertEqual(remediation["device_name"], device.name)

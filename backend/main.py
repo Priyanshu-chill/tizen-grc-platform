@@ -7,7 +7,7 @@ from typing import List, Optional
 from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import StreamingResponse, FileResponse
+from fastapi.responses import StreamingResponse, FileResponse, HTMLResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
@@ -28,7 +28,7 @@ from auth import (
 from seed_data import seed_database
 from policies import DOMAINS_V3 as DOMAINS
 from reports import (
-    generate_csv_report, generate_excel_tsv_report,
+    generate_csv_report, generate_html_report,
     generate_risk_register_csv, generate_remediation_plan_json
 )
 from engines import (
@@ -545,17 +545,10 @@ def download_csv_report(assessment_id: int, db: Session = Depends(get_db), curre
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
-@app.get("/api/reports/{assessment_id}/excel")
-def download_excel_report(assessment_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    tsv_data = generate_excel_tsv_report(db, assessment_id)
-    assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
-    filename = f"UTSCF_Assessment_{assessment.device.name.replace(' ', '_')}_{assessment_id}.xls"
-    
-    return StreamingResponse(
-        io.BytesIO(tsv_data.encode("utf-8")),
-        media_type="application/vnd.ms-excel",
-        headers={"Content-Disposition": f"attachment; filename={filename}"}
-    )
+@app.get("/api/reports/{assessment_id}/html", response_class=HTMLResponse)
+def download_html_report(assessment_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    html_data = generate_html_report(db, assessment_id)
+    return html_data
 
 @app.get("/api/reports/{assessment_id}/remediation")
 def download_remediation_plan(assessment_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):

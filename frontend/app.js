@@ -1138,6 +1138,12 @@ async function downloadReport(format) {
         return;
     }
     
+    if (format === "html") {
+        // Open the HTML report in a new tab for easy viewing/printing
+        window.open(`/api/reports/${id}/html`, '_blank');
+        return;
+    }
+    
     const url = `/api/reports/${id}/${format}`;
     try {
         const res = await fetch(url, { headers: getHeaders() });
@@ -1145,7 +1151,7 @@ async function downloadReport(format) {
             const blob = await res.blob();
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `UTSCF_Assessment_Report_${id}.${format === 'csv' ? 'csv' : 'xls'}`;
+            link.download = `UTSCF_Assessment_Report_${id}.csv`;
             link.click();
         }
     } catch(err) {
