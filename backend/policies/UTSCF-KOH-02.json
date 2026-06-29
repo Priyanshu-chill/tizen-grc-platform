@@ -1,0 +1,32 @@
+{
+  "policy_version": "1.0.0",
+  "framework_version": "3.0.0",
+  "control_id": "UTSCF-KOH-02",
+  "domain": "Kernel & OS Hardening",
+  "category": "OS Configuration",
+  "name": "Sysctl redirect parameters",
+  "description": "Disable IP redirect acceptance in system sysctl configs.",
+  "security_objective": "Protect Tizen OS devices against security vulnerabilities by enforcing proper sysctl redirect parameters settings.",
+  "business_justification": "Fulfills regulatory requirements and mitigates risk vectors related to Tizen OS device operations.",
+  "verification_logic": "sdb shell tizen_check_security --control=UTSCF-KOH-02",
+  "expected_value": "net.ipv4.conf.all.accept_redirects=0",
+  "severity": "MEDIUM",
+  "control_weight": 2.0,
+  "validation_type": "AUTOMATED",
+  "related_root_causes": [
+    "OS Configuration",
+    "Kernel & OS Hardening Hardening"
+  ],
+  "related_cves": "N/A",
+  "related_mitre_techniques": "T1071",
+  "standards_mapping": {
+    "nist_csf_2": "PR.IP-2",
+    "iso27001_2022": "A.8.20",
+    "cis_v8": "5.2",
+    "owasp_iot": "I2",
+    "iec62443": "4-2-CR-2.1"
+  },
+  "remediation_guide": "{\"business_impact\": \"Risk of configuration drift on Sysctl redirect parameters. Attackers could exploit these unhardened parameters to launch privileges escalation actions.\", \"technical_impact\": \"Failed control allows unapproved subsystem bindings, breaking sandboxing isolation or inter-process communications.\", \"fix_steps\": \"Modify system properties. If automated, configure the parameter `net.ipv4.conf.all.accept_redirects=0` in your config payload and deploy.\", \"config_example\": \"net.ipv4.conf.all.accept_redirects=0\", \"validation_steps\": \"sdb shell tizen_check_security --control=UTSCF-KOH-02\", \"cost\": \"LOW\", \"estimated_time_hours\": 4}",
+  "policy_owner": "Security Administrator",
+  "review_frequency_days": 90
+}

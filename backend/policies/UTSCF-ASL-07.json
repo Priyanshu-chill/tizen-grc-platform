@@ -1,0 +1,32 @@
+{
+  "policy_version": "1.0.0",
+  "framework_version": "3.0.0",
+  "control_id": "UTSCF-ASL-07",
+  "domain": "Application Sandboxing & Lifecycle",
+  "category": "App Security",
+  "name": "Auxiliary validation rule for Application Sandboxing & Lifecycle #7",
+  "description": "Verify configuration matches parameters for UTSCF-ASL-07 in Application Sandboxing & Lifecycle category.",
+  "security_objective": "Protect Tizen OS devices against security vulnerabilities by enforcing proper auxiliary validation rule for application sandboxing & lifecycle #7 settings.",
+  "business_justification": "Fulfills regulatory requirements and mitigates risk vectors related to Tizen OS device operations.",
+  "verification_logic": "sdb shell tizen_check_security --control=UTSCF-ASL-07",
+  "expected_value": "status=enabled",
+  "severity": "LOW",
+  "control_weight": 1.0,
+  "validation_type": "AUTOMATED",
+  "related_root_causes": [
+    "App Security",
+    "Application Sandboxing & Lifecycle Hardening"
+  ],
+  "related_cves": "N/A",
+  "related_mitre_techniques": "T1059.007",
+  "standards_mapping": {
+    "nist_csf_2": "PR.IP-3",
+    "iso27001_2022": "A.8.16",
+    "cis_v8": "7.1",
+    "owasp_iot": "I7",
+    "iec62443": "4-2-CR-3.1"
+  },
+  "remediation_guide": "{\"business_impact\": \"Risk of configuration drift on Auxiliary validation rule for Application Sandboxing & Lifecycle #7. Attackers could exploit these unhardened parameters to launch privileges escalation actions.\", \"technical_impact\": \"Failed control allows unapproved subsystem bindings, breaking sandboxing isolation or inter-process communications.\", \"fix_steps\": \"Modify system properties. If automated, configure the parameter `status=enabled` in your config payload and deploy.\", \"config_example\": \"status=enabled\", \"validation_steps\": \"sdb shell tizen_check_security --control=UTSCF-ASL-07\", \"cost\": \"LOW\", \"estimated_time_hours\": 2}",
+  "policy_owner": "Security Administrator",
+  "review_frequency_days": 90
+}

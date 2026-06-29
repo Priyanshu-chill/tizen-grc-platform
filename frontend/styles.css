@@ -1,0 +1,195 @@
+/* Tizen GRC Premium Security Design System */
+:root {
+    --bg-dark: #0f172a;
+    --bg-card: rgba(30, 41, 59, 0.7);
+    --bg-card-hover: rgba(30, 41, 59, 0.9);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    
+    --primary-blue: #3b82f6;
+    --primary-blue-glow: rgba(59, 130, 246, 0.35);
+    
+    --status-pass: #10b981;
+    --status-pass-bg: rgba(16, 185, 129, 0.15);
+    --status-fail: #f43f5e;
+    --status-fail-bg: rgba(244, 63, 94, 0.15);
+    --status-partial: #f59e0b;
+    --status-partial-bg: rgba(245, 158, 11, 0.15);
+    --status-na: #64748b;
+    --status-na-bg: rgba(100, 116, 139, 0.15);
+
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Glassmorphism Elements */
+.glass-panel {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    transition: var(--transition-smooth);
+}
+
+.glass-panel:hover {
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Custom Navigation Bar */
+.navbar-grc {
+    background-color: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.navbar-brand-grc {
+    font-weight: 800;
+    letter-spacing: 1px;
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Sidebar Styling */
+.sidebar {
+    height: calc(100vh - 56px);
+    border-right: 1px solid var(--border-color);
+    background: rgba(15, 23, 42, 0.5);
+    padding-top: 1.5rem;
+}
+
+.sidebar .nav-link {
+    color: var(--text-secondary);
+    border-radius: 8px;
+    margin: 4px 12px;
+    padding: 10px 16px;
+    transition: var(--transition-smooth);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sidebar .nav-link:hover, .sidebar .nav-link.active {
+    color: var(--text-primary);
+    background: rgba(59, 130, 246, 0.15);
+    border-left: 3px solid var(--primary-blue);
+}
+
+/* Status Badges */
+.badge-pass {
+    color: var(--status-pass) !important;
+    background-color: var(--status-pass-bg);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.badge-fail {
+    color: var(--status-fail) !important;
+    background-color: var(--status-fail-bg);
+    border: 1px solid rgba(244, 63, 94, 0.3);
+}
+.badge-partial {
+    color: var(--status-partial) !important;
+    background-color: var(--status-partial-bg);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+.badge-na {
+    color: var(--status-na) !important;
+    background-color: var(--status-na-bg);
+    border: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+/* Metric Cards */
+.metric-card {
+    padding: 1.5rem;
+}
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ffffff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Risk Heat Map */
+.risk-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.risk-cell {
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.risk-cell.critical { background: rgba(244, 63, 94, 0.1); border-color: rgba(244, 63, 94, 0.3); color: var(--status-fail); }
+.risk-cell.high { background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.3); color: var(--status-partial); }
+.risk-cell.medium { background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.3); color: var(--primary-blue); }
+.risk-cell.low { background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); color: var(--status-pass); }
+
+/* Login Page Styling */
+.login-container {
+    max-width: 420px;
+    margin-top: 10vh;
+}
+
+/* Custom Table Styling */
+.table-grc {
+    color: var(--text-primary) !important;
+}
+
+.table-grc th {
+    background-color: rgba(15, 23, 42, 0.5) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-secondary);
+}
+
+.table-grc td {
+    background-color: transparent !important;
+    border-color: var(--border-color) !important;
+    vertical-align: middle;
+}
+
+.table-grc tr:hover td {
+    background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+/* Forms Hardening */
+.form-control-grc {
+    background-color: rgba(15, 23, 42, 0.5) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+.form-control-grc:focus {
+    border-color: var(--primary-blue) !important;
+    box-shadow: 0 0 8px var(--primary-blue-glow) !important;
+}
+
+/* Scrollbar Hardening */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+}
+::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}

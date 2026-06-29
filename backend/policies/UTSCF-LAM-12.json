@@ -1,0 +1,32 @@
+{
+  "policy_version": "1.0.0",
+  "framework_version": "3.0.0",
+  "control_id": "UTSCF-LAM-12",
+  "domain": "Logging, Audit & Monitoring",
+  "category": "Security Ops",
+  "name": "Auxiliary validation rule for Logging, Audit & Monitoring #12",
+  "description": "Verify configuration matches parameters for UTSCF-LAM-12 in Logging, Audit & Monitoring category.",
+  "security_objective": "Protect Tizen OS devices against security vulnerabilities by enforcing proper auxiliary validation rule for logging, audit & monitoring #12 settings.",
+  "business_justification": "Fulfills regulatory requirements and mitigates risk vectors related to Tizen OS device operations.",
+  "verification_logic": "Audit device settings screen manually.",
+  "expected_value": null,
+  "severity": "HIGH",
+  "control_weight": 3.0,
+  "validation_type": "MANUAL",
+  "related_root_causes": [
+    "Security Ops",
+    "Logging, Audit & Monitoring Hardening"
+  ],
+  "related_cves": "N/A",
+  "related_mitre_techniques": "T1059.003",
+  "standards_mapping": {
+    "nist_csf_2": "PR.IP-4",
+    "iso27001_2022": "A.8.21",
+    "cis_v8": "12.1",
+    "owasp_iot": "I2",
+    "iec62443": "4-2-CR-4.1"
+  },
+  "remediation_guide": "{\"business_impact\": \"Risk of configuration drift on Auxiliary validation rule for Logging, Audit & Monitoring #12. Attackers could exploit these unhardened parameters to launch privileges escalation actions.\", \"technical_impact\": \"Failed control allows unapproved subsystem bindings, breaking sandboxing isolation or inter-process communications.\", \"fix_steps\": \"Modify system properties. If automated, configure the parameter `status=active` in your config payload and deploy.\", \"config_example\": \"status=enabled\", \"validation_steps\": \"Audit device settings screen manually.\", \"cost\": \"MEDIUM\", \"estimated_time_hours\": 6}",
+  "policy_owner": "Security Administrator",
+  "review_frequency_days": 90
+}

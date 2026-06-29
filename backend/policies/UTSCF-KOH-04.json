@@ -1,0 +1,32 @@
+{
+  "policy_version": "1.0.0",
+  "framework_version": "3.0.0",
+  "control_id": "UTSCF-KOH-04",
+  "domain": "Kernel & OS Hardening",
+  "category": "OS Configuration",
+  "name": "Input validation parameter sanitization",
+  "description": "Ensure system daemons validate D-Bus input arguments.",
+  "security_objective": "Protect Tizen OS devices against security vulnerabilities by enforcing proper input validation parameter sanitization settings.",
+  "business_justification": "Fulfills regulatory requirements and mitigates risk vectors related to Tizen OS device operations.",
+  "verification_logic": "sdb shell tizen_check_security --control=UTSCF-KOH-04",
+  "expected_value": "input_sanitizer=active",
+  "severity": "CRITICAL",
+  "control_weight": 4.0,
+  "validation_type": "AUTOMATED",
+  "related_root_causes": [
+    "OS Configuration",
+    "Kernel & OS Hardening Hardening"
+  ],
+  "related_cves": "CVE-2021-25436, CVE-2021-25434",
+  "related_mitre_techniques": "T1059",
+  "standards_mapping": {
+    "nist_csf_2": "PR.IP-1",
+    "iso27001_2022": "A.8.25",
+    "cis_v8": "16.1",
+    "owasp_iot": "I2",
+    "iec62443": "4-2-CR-2.1"
+  },
+  "remediation_guide": "{\"business_impact\": \"Risk of configuration drift on Input validation parameter sanitization. Attackers could exploit these unhardened parameters to launch privileges escalation actions.\", \"technical_impact\": \"Failed control allows unapproved subsystem bindings, breaking sandboxing isolation or inter-process communications.\", \"fix_steps\": \"Modify system properties. If automated, configure the parameter `input_sanitizer=active` in your config payload and deploy.\", \"config_example\": \"input_sanitizer=active\", \"validation_steps\": \"sdb shell tizen_check_security --control=UTSCF-KOH-04\", \"cost\": \"MEDIUM\", \"estimated_time_hours\": 8}",
+  "policy_owner": "Security Administrator",
+  "review_frequency_days": 90
+}

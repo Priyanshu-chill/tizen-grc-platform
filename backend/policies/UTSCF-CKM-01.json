@@ -1,0 +1,32 @@
+{
+  "policy_version": "1.0.0",
+  "framework_version": "3.0.0",
+  "control_id": "UTSCF-CKM-01",
+  "domain": "Cryptography & Key Management",
+  "category": "Data Protection",
+  "name": "FIPS crypto-module status",
+  "description": "Verify usage of FIPS-compliant cryptographic modules.",
+  "security_objective": "Protect Tizen OS devices against security vulnerabilities by enforcing proper fips crypto-module status settings.",
+  "business_justification": "Fulfills regulatory requirements and mitigates risk vectors related to Tizen OS device operations.",
+  "verification_logic": "sdb shell tizen_check_security --control=UTSCF-CKM-01",
+  "expected_value": "crypto_module=fips",
+  "severity": "LOW",
+  "control_weight": 1.0,
+  "validation_type": "AUTOMATED",
+  "related_root_causes": [
+    "Data Protection",
+    "Cryptography & Key Management Hardening"
+  ],
+  "related_cves": "N/A",
+  "related_mitre_techniques": "T1553",
+  "standards_mapping": {
+    "nist_csf_2": "PR.DS-1",
+    "iso27001_2022": "A.8.24",
+    "cis_v8": "3.2",
+    "owasp_iot": "I5",
+    "iec62443": "4-2-CR-2.1"
+  },
+  "remediation_guide": "{\"business_impact\": \"Risk of configuration drift on FIPS crypto-module status. Attackers could exploit these unhardened parameters to launch privileges escalation actions.\", \"technical_impact\": \"Failed control allows unapproved subsystem bindings, breaking sandboxing isolation or inter-process communications.\", \"fix_steps\": \"Modify system properties. If automated, configure the parameter `crypto_module=fips` in your config payload and deploy.\", \"config_example\": \"crypto_module=fips\", \"validation_steps\": \"sdb shell tizen_check_security --control=UTSCF-CKM-01\", \"cost\": \"MEDIUM\", \"estimated_time_hours\": 2}",
+  "policy_owner": "Security Administrator",
+  "review_frequency_days": 90
+}

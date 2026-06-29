@@ -1,0 +1,32 @@
+{
+  "policy_version": "1.0.0",
+  "framework_version": "3.0.0",
+  "control_id": "UTSCF-BHS-03",
+  "domain": "Boot & Hardware Security",
+  "category": "Hardware Protection",
+  "name": "Knox Warranty Bit status",
+  "description": "Verify that Knox security fuse integrity remains unblown.",
+  "security_objective": "Protect Tizen OS devices against security vulnerabilities by enforcing proper knox warranty bit status settings.",
+  "business_justification": "Fulfills regulatory requirements and mitigates risk vectors related to Tizen OS device operations.",
+  "verification_logic": "sdb shell tizen_check_security --control=UTSCF-BHS-03",
+  "expected_value": "knox_warranty=0",
+  "severity": "MEDIUM",
+  "control_weight": 2.0,
+  "validation_type": "AUTOMATED",
+  "related_root_causes": [
+    "Hardware Protection",
+    "Boot & Hardware Security Hardening"
+  ],
+  "related_cves": "N/A",
+  "related_mitre_techniques": "T1542.001",
+  "standards_mapping": {
+    "nist_csf_2": "PR.PS-2",
+    "iso27001_2022": "A.8.14",
+    "cis_v8": "4.2",
+    "owasp_iot": "I1",
+    "iec62443": "4-2-CR-1.1"
+  },
+  "remediation_guide": "{\"business_impact\": \"Risk of configuration drift on Knox Warranty Bit status. Attackers could exploit these unhardened parameters to launch privileges escalation actions.\", \"technical_impact\": \"Failed control allows unapproved subsystem bindings, breaking sandboxing isolation or inter-process communications.\", \"fix_steps\": \"Modify system properties. If automated, configure the parameter `knox_warranty=0` in your config payload and deploy.\", \"config_example\": \"knox_warranty=0\", \"validation_steps\": \"sdb shell tizen_check_security --control=UTSCF-BHS-03\", \"cost\": \"LOW\", \"estimated_time_hours\": 4}",
+  "policy_owner": "Security Administrator",
+  "review_frequency_days": 90
+}

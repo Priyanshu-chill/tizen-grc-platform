@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTSGRCP v3.0 - Enterprise Universal Tizen Security Governance, Risk & Compliance Platform</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom Style -->
+    <link href="/static/styles.css" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Login Container Overlay -->
+    <div id="loginOverlay" class="d-flex align-items-center justify-content-center position-fixed w-100 h-100 top-0 start-0 bg-dark z-3">
+        <div class="glass-panel p-5 login-container text-center">
+            <div class="mb-4">
+                <i class="bi bi-shield-fill-check text-primary fs-1 display-glow"></i>
+                <h3 class="fw-bold text-white mt-3 mb-1">UTSGRCP 3.0</h3>
+                <p class="text-secondary small">Universal Tizen Security Governance, Risk & Compliance</p>
+            </div>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="mb-3 text-start">
+                    <label class="form-label text-secondary small">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary-subtle text-secondary"><i class="bi bi-person"></i></span>
+                        <input type="text" class="form-control form-control-grc" id="loginUsername" required placeholder="e.g. secadmin">
+                    </div>
+                </div>
+                <div class="mb-4 text-start">
+                    <label class="form-label text-secondary small">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary-subtle text-secondary"><i class="bi bi-lock"></i></span>
+                        <input type="password" class="form-control form-control-grc" id="loginPassword" required placeholder="••••••••">
+                    </div>
+                </div>
+                <div id="loginError" class="alert alert-danger p-2 small d-none" role="alert"></div>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Sign In to Dashboard</button>
+            </form>
+            <div class="mt-4 pt-3 border-top border-secondary-subtle text-secondary small">
+                Default Accounts: <code class="text-info small">superadmin</code>, <code class="text-info small">secadmin</code>, <code class="text-info small">analyst</code><br>
+                Password: <code class="text-info small">password123</code>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Platform Layout -->
+    <div id="appContainer" class="d-none">
+        <!-- Header Navigation -->
+        <header class="navbar navbar-dark sticky-top navbar-grc flex-md-nowrap p-0 shadow">
+            <a class="navbar-brand navbar-brand-grc col-md-3 col-lg-2 me-0 px-3 fs-5" href="#">
+                <i class="bi bi-shield-fill-check me-2"></i>UTSGRCP <span class="fs-6 text-secondary font-monospace">v3.0</span>
+            </a>
+            <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="w-100 d-flex justify-content-start px-4 align-items-center">
+                <span class="badge bg-secondary-subtle text-secondary small font-monospace"><i class="bi bi-hdd-network me-1"></i> Continuous Compliance Monitor</span>
+            </div>
+            <div class="navbar-nav border-start border-secondary-subtle">
+                <div class="nav-item text-nowrap d-flex align-items-center px-4">
+                    <span class="text-secondary me-3 small" id="userDisplay"><i class="bi bi-person-circle me-1"></i> Guest</span>
+                    <a class="btn btn-outline-danger btn-sm py-1 px-3" href="#" onclick="logout()"><i class="bi bi-box-arrow-right me-1"></i> Sign out</a>
+                </div>
+            </div>
+        </header>
+
+        <div class="container-fluid">
+            <div class="row">
+                <!-- Sidebar Menu -->
+                <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                    <div class="position-sticky pt-3">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="navLinkDashboard" aria-current="page" href="#" onclick="switchView('dashboard')">
+                                    <i class="bi bi-grid-1x2-fill"></i> Dashboards Console
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="navLinkDevices" href="#" onclick="switchView('devices')">
+                                    <i class="bi bi-cpu-fill"></i> Devices Inventory
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="navLinkAssessments" href="#" onclick="switchView('assessments')">
+                                    <i class="bi bi-journal-check"></i> Assessments Workbench
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="navLinkControls" href="#" onclick="switchView('controls')">
+                                    <i class="bi bi-bookmark-star-fill"></i> UTSCF Policy Catalog
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="navLinkReports" href="#" onclick="switchView('reports')">
+                                    <i class="bi bi-file-earmark-bar-graph-fill"></i> Audit Reporting & Risk
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="sidebar-footer mt-5 p-4 border-top border-secondary-subtle text-secondary small">
+                            <span class="fw-bold text-white">Universal Tizen Framework</span><br>
+                            Compliance: <code class="text-primary small">UTSCF v3.0</code>
+                        </div>
+                    </div>
+                </nav>
+
+                <!-- Main Content Pane -->
+                <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                    
+                    <!-- View: Dashboards Console -->
+                    <section id="view-dashboard" class="view-section">
+                        <!-- Dashboard Level Tabs -->
+                        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-4 border-bottom border-secondary-subtle">
+                            <h1 class="h2 fw-bold text-white mb-2 mb-md-0"><i class="bi bi-pie-chart text-primary me-2"></i>Security Dashboards</h1>
+                            <ul class="nav nav-pills" id="dashboardTabs" role="tablist">
+                                <li class="nav-item"><button class="nav-link active py-1 px-3 me-2" onclick="switchDashboardTab('executive')">Executive</button></li>
+                                <li class="nav-item"><button class="nav-link py-1 px-3 me-2" onclick="switchDashboardTab('security')">Security</button></li>
+                                <li class="nav-item"><button class="nav-link py-1 px-3 me-2" onclick="switchDashboardTab('compliance')">Compliance</button></li>
+                                <li class="nav-item"><button class="nav-link py-1 px-3 me-2" onclick="switchDashboardTab('risk')">Risk</button></li>
+                                <li class="nav-item"><button class="nav-link py-1 px-3 me-2" onclick="switchDashboardTab('analytics')">Analytics</button></li>
+                                <li class="nav-item"><button class="nav-link py-1 px-3" onclick="switchDashboardTab('operations')">Operations</button></li>
+                            </ul>
+                        </div>
+
+                        <!-- 1. TAB: EXECUTIVE DASHBOARD -->
+                        <div id="db-tab-executive" class="db-tab-content">
+                            <!-- Metrics Summary Cards -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-3">
+                                    <div class="glass-panel metric-card">
+                                        <div class="text-secondary small mb-2"><i class="bi bi-shield-check me-1"></i> Security Posture Score</div>
+                                        <div class="metric-value text-glow" id="statPostureScore">0.0</div>
+                                        <div class="progress mt-2" style="height: 6px;">
+                                            <div class="progress-bar bg-primary" role="progressbar" style="width: 0%" id="statPostureBar"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="glass-panel metric-card">
+                                        <div class="text-secondary small mb-2"><i class="bi bi-percent me-1"></i> Overall Compliance</div>
+                                        <div class="metric-value text-glow" id="statCompliance">0.0%</div>
+                                        <div class="progress mt-2" style="height: 6px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 0%" id="statComplianceBar"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="glass-panel metric-card">
+                                        <div class="text-secondary small mb-2"><i class="bi bi-cone-striped me-1"></i> Attack Surface Index</div>
+                                        <div class="metric-value text-glow text-warning" id="statAttackSurface">0.0</div>
+                                        <div class="progress mt-2" style="height: 6px;">
+                                            <div class="progress-bar bg-warning" role="progressbar" style="width: 0%" id="statAttackSurfaceBar"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="glass-panel metric-card">
+                                        <div class="text-secondary small mb-2"><i class="bi bi-exclamation-triangle me-1"></i> Average Residual Risk</div>
+                                        <div class="metric-value text-glow text-danger" id="statRisk">0.0</div>
+                                        <span class="badge badge-pass mt-2" id="statRiskBadge">Low Risk</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-7">
+                                    <div class="glass-panel p-4 h-100">
+                                        <h5 class="text-white mb-4"><i class="bi bi-bar-chart-line-fill me-2"></i> Compliance by Domain</h5>
+                                        <div style="height: 280px; position: relative;">
+                                            <canvas id="chartDomainBar"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="glass-panel p-4 h-100">
+                                        <h5 class="text-white mb-3"><i class="bi bi-speedometer2 me-2"></i> GRC Security Maturity</h5>
+                                        <div class="text-center py-2">
+                                            <div class="fs-1 fw-bold text-primary font-monospace" id="statMaturityVal">Level 1</div>
+                                            <p class="text-secondary small mt-1" id="statMaturityDesc">Initial tracking stage. Requires security baseline audits.</p>
+                                        </div>
+                                        <div class="border-top border-secondary-subtle pt-3 mt-3">
+                                            <h6 class="text-white small mb-3">Asset Distribution Summary:</h6>
+                                            <div class="d-flex justify-content-between text-secondary small mb-2">
+                                                <span>Total Monitored Devices:</span>
+                                                <span class="text-white fw-bold" id="execTotalDevices">0</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between text-secondary small mb-2">
+                                                <span>Compliant Devices (>=90%):</span>
+                                                <span class="text-success fw-bold" id="execCompliantDevices">0</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between text-secondary small">
+                                                <span>Non-Compliant Devices (<60%):</span>
+                                                <span class="text-danger fw-bold" id="execNonCompliantDevices">0</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. TAB: SECURITY DASHBOARD -->
+                        <div id="db-tab-security" class="db-tab-content d-none">
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-8">
+                                    <div class="glass-panel p-4">
+                                        <h5 class="text-white mb-3"><i class="bi bi-shield-slash-fill text-danger me-2"></i> MITRE ATT&CK Matrix Coverages</h5>
+                                        <p class="text-secondary small">Visual mapping of active UTSCF security configurations against threat actor execution techniques.</p>
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-dark border-secondary table-sm align-middle text-center font-monospace small">
+                                                <thead>
+                                                    <tr>
+                                                        <th class="bg-dark text-secondary">Initial Access</th>
+                                                        <th class="bg-dark text-secondary">Execution</th>
+                                                        <th class="bg-dark text-secondary">Priv Escalation</th>
+                                                        <th class="bg-dark text-secondary">Defense Evasion</th>
+                                                        <th class="bg-dark text-secondary">Discovery</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="p-2"><span class="badge bg-success-subtle text-success w-100 border border-success">T1566<br>SMACK Enforcement</span></td>
+                                                        <td class="p-2"><span class="badge bg-danger-subtle text-danger w-100 border border-danger">T1059<br>D-Bus / SDB Shell</span></td>
+                                                        <td class="p-2"><span class="badge bg-success-subtle text-success w-100 border border-success">T1548<br>Cynara Rules</span></td>
+                                                        <td class="p-2"><span class="badge bg-success-subtle text-success w-100 border border-success">T1553<br>Signed Apps</span></td>
+                                                        <td class="p-2"><span class="badge bg-danger-subtle text-danger w-100 border border-danger">T1083<br>Folder Labeling</span></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="p-2"><span class="badge bg-success-subtle text-success w-100 border border-success">T1437<br>Bluetooth Off</span></td>
+                                                        <td class="p-2"><span class="badge bg-success-subtle text-success w-100 border border-success">T1211<br>Memory Safe</span></td>
+                                                        <td class="p-2"><span class="badge bg-success-subtle text-success w-100 border border-success">T1548.003<br>Su Limit</span></td>
+                                                        <td class="p-2"><span class="badge bg-success-subtle text-success w-100 border border-success">T1542.001<br>Secure Boot</span></td>
+                                                        <td class="p-2"><span class="badge bg-secondary-subtle text-secondary w-100 border border-secondary">T1110<br>MDM Lockout</span></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="glass-panel p-4 h-100">
+                                        <h5 class="text-white mb-3"><i class="bi bi-patch-exclamation-fill text-info me-2"></i> Vulnerability Knowledge Base</h5>
+                                        <p class="text-secondary small">Vulnerability CVEs linked to active hardware and firmware configurations.</p>
+                                        <div class="list-group list-group-flush bg-transparent" id="cveMappingList">
+                                            <div class="list-group-item bg-transparent text-light border-secondary-subtle py-2 px-0">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span class="fw-bold text-glow text-danger font-monospace small">CVE-2019-3568</span>
+                                                    <span class="badge bg-danger btn-sm">CRITICAL</span>
+                                                </div>
+                                                <div class="text-secondary small mt-1">Samsung Tizen Secure Boot Signature Bypass.</div>
+                                            </div>
+                                            <div class="list-group-item bg-transparent text-light border-secondary-subtle py-2 px-0">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span class="fw-bold text-glow text-warning font-monospace small">CVE-2021-25433</span>
+                                                    <span class="badge bg-warning btn-sm">HIGH</span>
+                                                </div>
+                                                <div class="text-secondary small mt-1">Cynara DB Local Privilege Escalation exploit.</div>
+                                            </div>
+                                            <div class="list-group-item bg-transparent text-light border-secondary-subtle py-2 px-0">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span class="fw-bold text-glow text-warning font-monospace small">CVE-2021-25434</span>
+                                                    <span class="badge bg-warning btn-sm">HIGH</span>
+                                                </div>
+                                                <div class="text-secondary small mt-1">D-Bus Input Validation crash exploit in daemon.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. TAB: COMPLIANCE DASHBOARD -->
+                        <div id="db-tab-compliance" class="db-tab-content d-none">
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-4">
+                                    <div class="glass-panel p-4 h-100">
+                                        <h5 class="text-white mb-4"><i class="bi bi-bezier2 text-primary me-2"></i> Framework Map</h5>
+                                        <div style="height: 250px; position: relative;">
+                                            <canvas id="chartComplianceRadar"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="glass-panel p-4 h-100">
+                                        <h5 class="text-white mb-3"><i class="bi bi-code-square text-info me-2"></i> Policy-as-Code Repository</h5>
+                                        <p class="text-secondary small">Policy declarations compiled as individual JSON schema code configurations inside <code class="font-monospace text-warning">/backend/policies/</code> directory.</p>
+                                        <div class="table-responsive" style="max-height: 230px; overflow-y: auto;">
+                                            <table class="table table-grc table-sm align-middle small mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Policy File</th>
+                                                        <th>Framework Version</th>
+                                                        <th>Review Cycle</th>
+                                                        <th>Verification Mode</th>
+                                                        <th>Owner</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="policyRegistryBody">
+                                                    <!-- Seeded via JS -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4. TAB: RISK DASHBOARD -->
+                        <div id="db-tab-risk" class="db-tab-content d-none">
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-6">
+                                    <div class="glass-panel p-4 h-100">
+                                        <h5 class="text-white mb-4"><i class="bi bi-graph-up-arrow text-danger me-2"></i> Inherent vs. Residual Risk Exposure</h5>
+                                        <div style="height: 220px; position: relative;">
+                                            <canvas id="chartRiskCompare"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="glass-panel p-4 h-100">
+                                        <h5 class="text-white mb-3"><i class="bi bi-clock-history text-warning me-2"></i> Active Risk Exceptions (Acceptance)</h5>
+                                        <p class="text-secondary small">Active policies granted temporary risk waivers. Residual risks for active waivers are deferred during active SLA cycles.</p>
+                                        <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                                            <table class="table table-grc table-sm small align-middle mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Control</th>
+                                                        <th>Reason</th>
+                                                        <th>Expiry</th>
+                                                        <th>Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="exceptionsRegistryBody">
+                                                    <tr><td colspan="4" class="text-center text-secondary py-3">No active exceptions registered.</td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 5. TAB: ANALYTICS DASHBOARD -->
+                        <div id="db-tab-analytics" class="db-tab-content d-none">
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-6">
+                                    <div class="glass-panel p-4">
+                                        <h5 class="text-white mb-3"><i class="bi bi-activity text-info me-2"></i> Historical Compliance & Posture Trajectory</h5>
+                                        <div style="height: 220px; position: relative;">
+                                            <canvas id="chartHistoricalTrends"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="glass-panel p-4">
+                                        <h5 class="text-white mb-3"><i class="bi bi-funnel-fill text-primary me-2"></i> Root Cause Pareto Analysis</h5>
+                                        <div style="height: 220px; position: relative;">
+                                            <canvas id="chartPareto"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 6. TAB: OPERATIONS DASHBOARD -->
+                        <div id="db-tab-operations" class="db-tab-content d-none">
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-7">
+                                    <!-- Simulator Widget -->
+                                    <div class="glass-panel p-4">
+                                        <h5 class="text-white mb-2"><i class="bi bi-play-circle-fill text-success me-2"></i> Compliance & GRC Metric Simulator</h5>
+                                        <p class="text-secondary small mb-3">Model compliance overrides to see real-time posture improvement projections without committing active changes.</p>
+                                        
+                                        <form id="simulatorForm" onchange="runSimulation()">
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <div class="form-check form-switch mb-2">
+                                                        <input class="form-check-input" type="checkbox" id="sim_firmware">
+                                                        <label class="form-check-label text-light small" for="sim_firmware">Verify Latest Firmware (PVM-01)</label>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-2">
+                                                        <input class="form-check-input" type="checkbox" id="sim_secure_boot">
+                                                        <label class="form-check-label text-light small" for="sim_secure_boot">Enforce Secure Boot (BHS-01)</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-check form-switch mb-2">
+                                                        <input class="form-check-input" type="checkbox" id="sim_usb">
+                                                        <label class="form-check-label text-light small" for="sim_usb">Block USB Debug SDB (PIO-01)</label>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-2">
+                                                        <input class="form-check-input" type="checkbox" id="sim_bluetooth">
+                                                        <label class="form-check-label text-light small" for="sim_bluetooth">Limit BT Discoverable (NCS-03)</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+
+                                        <div class="row g-3 text-center border-top border-secondary-subtle pt-3">
+                                            <div class="col-6 col-md-3">
+                                                <div class="small text-secondary">Compliance %</div>
+                                                <div class="fw-bold text-white small" id="sim_res_compliance">0.0% -> 0.0%</div>
+                                                <div class="small text-success" id="sim_res_compliance_gain">+0.00%</div>
+                                            </div>
+                                            <div class="col-6 col-md-3">
+                                                <div class="small text-secondary">Residual Risk</div>
+                                                <div class="fw-bold text-white small" id="sim_res_risk">0.0 -> 0.0</div>
+                                                <div class="small text-success" id="sim_res_risk_reduction">-0.00</div>
+                                            </div>
+                                            <div class="col-6 col-md-3">
+                                                <div class="small text-secondary">Posture Score</div>
+                                                <div class="fw-bold text-white small" id="sim_res_posture">0.0 -> 0.0</div>
+                                                <div class="small text-success" id="sim_res_posture_gain">+0.00</div>
+                                            </div>
+                                            <div class="col-6 col-md-3">
+                                                <div class="small text-secondary">Attack Surface</div>
+                                                <div class="fw-bold text-white small" id="sim_res_surface">0.0 -> 0.0</div>
+                                                <div class="small text-success" id="sim_res_surface_reduction">-0.00</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="glass-panel p-4 h-100">
+                                        <h5 class="text-white mb-3"><i class="bi bi-bell-fill text-warning me-2"></i> Configuration Drift Alerts</h5>
+                                        <p class="text-secondary small">Real-time alerts emitted when device configurations degrade from prior secure compliance benchmarks.</p>
+                                        <div class="list-group list-group-flush bg-transparent" id="driftAlertList" style="max-height: 220px; overflow-y: auto;">
+                                            <div class="text-secondary small py-3 text-center">No active configuration drifts detected.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Details Row (Always visible under Dashboards) -->
+                        <div class="row g-4">
+                            <div class="col-md-8">
+                                <div class="glass-panel p-4">
+                                    <h5 class="text-white mb-3"><i class="bi bi-clock-history me-2"></i> Recent Assessments</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-grc align-middle mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Device Asset</th>
+                                                    <th>Maturity</th>
+                                                    <th>Compliance</th>
+                                                    <th>Risk Score</th>
+                                                    <th>Posture Score</th>
+                                                    <th>Assigned Assessor</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="dashboardAssessmentsTable">
+                                                <tr><td colspan="6" class="text-center text-secondary py-3">No assessments run yet.</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="glass-panel p-4">
+                                    <h5 class="text-white mb-3"><i class="bi bi-bug-fill me-2"></i> Top Failed Controls</h5>
+                                    <div class="list-group list-group-flush bg-transparent" id="dashboardTopFailedList">
+                                        <div class="text-secondary small py-2">No failed controls found. All devices are compliant!</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+
+                    <!-- View: Devices Inventory -->
+                    <section id="view-devices" class="view-section d-none">
+                        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-4 border-bottom border-secondary-subtle">
+                            <h1 class="h2 fw-bold text-white">Registered Device Assets</h1>
+                            <button class="btn btn-primary btn-sm px-3" data-bs-toggle="modal" data-bs-target="#registerDeviceModal">
+                                <i class="bi bi-plus-circle me-1"></i> Register Tizen Device
+                            </button>
+                        </div>
+
+                        <div class="glass-panel p-4">
+                            <div class="table-responsive">
+                                <table class="table table-grc align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Asset Name</th>
+                                            <th>Model / Type</th>
+                                            <th>Serial Number</th>
+                                            <th>Firmware Version</th>
+                                            <th>Group / Site</th>
+                                            <th>IP & MAC Address</th>
+                                            <th>Criticality</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="devicesTableBody">
+                                        <tr><td colspan="8" class="text-center text-secondary py-3">Loading device assets...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+
+                    <!-- View: Assessments Workbench -->
+                    <section id="view-assessments" class="view-section d-none">
+                        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-4 border-bottom border-secondary-subtle">
+                            <h1 class="h2 fw-bold text-white">UTSCF Compliance Assessments</h1>
+                            <button class="btn btn-primary btn-sm px-3" data-bs-toggle="modal" data-bs-target="#newAssessmentModal">
+                                <i class="bi bi-plus-circle me-1"></i> New Assessment
+                            </button>
+                        </div>
+
+                        <div class="glass-panel p-4 mb-4">
+                            <div class="table-responsive">
+                                <table class="table table-grc align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Target Device</th>
+                                            <th>Assessor</th>
+                                            <th>Compliance %</th>
+                                            <th>Risk Rating</th>
+                                            <th>Posture Score</th>
+                                            <th>Maturity Level</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="assessmentsTableBody">
+                                        <tr><td colspan="7" class="text-center text-secondary py-3">Loading compliance assessments...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Assessment Execution Workbench (Initially Hidden) -->
+                        <div class="glass-panel p-4 d-none" id="assessmentWorkbench">
+                            <div class="d-flex justify-content-between align-items-center border-bottom border-secondary-subtle pb-3 mb-4">
+                                <div>
+                                    <h4 class="text-white mb-1"><i class="bi bi-tools text-primary me-2"></i> Assessment Workbench</h4>
+                                    <p class="text-secondary small mb-0" id="workbenchDeviceMeta">Device: Signage-01 | Model: Tizen Signage</p>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-outline-info btn-sm" id="btnRunScan" onclick="triggerScan()">
+                                        <i class="bi bi-cpu me-1"></i> Simulate Automated Scan
+                                    </button>
+                                    <button class="btn btn-secondary btn-sm" onclick="closeWorkbench()">
+                                        <i class="bi bi-x-circle me-1"></i> Close Workbench
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Filters -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <label class="text-secondary small form-label">Filter Domain</label>
+                                    <select class="form-select form-select-sm form-control-grc" id="workbenchDomainFilter" onchange="filterFindings()">
+                                        <option value="ALL">All Domains</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="text-secondary small form-label">Filter Status</label>
+                                    <select class="form-select form-select-sm form-control-grc" id="workbenchStatusFilter" onchange="filterFindings()">
+                                        <option value="ALL">All Statuses</option>
+                                        <option value="PASS">PASS</option>
+                                        <option value="FAIL">FAIL</option>
+                                        <option value="PARTIALLY_COMPLIANT">Partially Compliant</option>
+                                        <option value="NOT_APPLICABLE">Not Applicable</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Findings Table -->
+                            <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                                <table class="table table-grc align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Control ID</th>
+                                            <th>Control Name</th>
+                                            <th>Severity</th>
+                                            <th>Type</th>
+                                            <th>Inherent Risk</th>
+                                            <th>Residual Risk</th>
+                                            <th>Status</th>
+                                            <th>Evidence</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="workbenchFindingsBody">
+                                        <!-- Populated dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+
+                    <!-- View: UTSCF Policy Catalog -->
+                    <section id="view-controls" class="view-section d-none">
+                        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-4 border-bottom border-secondary-subtle">
+                            <h1 class="h2 fw-bold text-white">UTSCF Controls Library</h1>
+                            <div class="text-secondary small">130 Policy-as-Code Controls Loaded</div>
+                        </div>
+
+                        <div class="glass-panel p-4 mb-4">
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-dark border-secondary-subtle text-secondary"><i class="bi bi-search"></i></span>
+                                        <input type="text" class="form-control form-control-grc" id="searchControlInput" placeholder="Search controls..." onkeyup="filterControlsLibrary()">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-select form-control-grc" id="searchDomainFilter" onchange="filterControlsLibrary()">
+                                        <option value="ALL">All Domains</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-select form-control-grc" id="searchSeverityFilter" onchange="filterControlsLibrary()">
+                                        <option value="ALL">All Severities</option>
+                                        <option value="CRITICAL">CRITICAL</option>
+                                        <option value="HIGH">HIGH</option>
+                                        <option value="MEDIUM">MEDIUM</option>
+                                        <option value="LOW">LOW</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                                <table class="table table-grc align-middle mb-0" id="controlsLibraryTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Control ID</th>
+                                            <th>Domain</th>
+                                            <th>Category</th>
+                                            <th>Control Name</th>
+                                            <th>Severity</th>
+                                            <th>Verification Logic</th>
+                                            <th>Standards Mapping</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="controlsLibraryBody">
+                                        <tr><td colspan="7" class="text-center text-secondary py-3">Loading library...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+
+                    <!-- View: Audit Reporting & Risk -->
+                    <section id="view-reports" class="view-section d-none">
+                        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-4 border-bottom border-secondary-subtle">
+                            <h1 class="h2 fw-bold text-white">GRC Reports & Risk Registers</h1>
+                            <div class="text-secondary small"><i class="bi bi-shield-lock-fill"></i> Enterprise Auditing Console</div>
+                        </div>
+
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="glass-panel p-4 h-100">
+                                    <h5 class="text-white mb-3"><i class="bi bi-file-earmark-text-fill text-primary me-2"></i> Device Compliance Exports</h5>
+                                    <p class="text-secondary small mb-4">Export detailed compliance logs, assessments metrics, and finding lists for specific devices to support third-party auditor checks.</p>
+                                    
+                                    <div class="mb-4">
+                                        <label class="form-label text-secondary small">Select Compliance Assessment</label>
+                                        <select class="form-select form-control-grc mb-3" id="reportAssessmentSelect">
+                                            <option value="">-- Choose Active Assessment --</option>
+                                        </select>
+                                        
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-primary flex-grow-1" onclick="downloadReport('csv')">
+                                                <i class="bi bi-filetype-csv me-1"></i> Export CSV Report
+                                            </button>
+                                            <button class="btn btn-outline-light flex-grow-1" onclick="downloadReport('excel')">
+                                                <i class="bi bi-file-earmark-excel me-1"></i> Export Excel (XLS)
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="glass-panel p-4 h-100">
+                                    <h5 class="text-white mb-3"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i> Enterprise Risk Register</h5>
+                                    <p class="text-secondary small mb-4">Download the comprehensive multi-device Risk Register. This maps total failure counts, risk severity classifications, and average maturity stats across your active organizations.</p>
+                                    <button class="btn btn-warning w-100 py-2 mb-3 fw-bold" onclick="downloadRiskRegister()">
+                                        <i class="bi bi-cloud-arrow-down-fill me-1"></i> Export Enterprise Risk Register (CSV)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <div class="glass-panel p-4">
+                                    <h5 class="text-white mb-2"><i class="bi bi-activity text-info me-2"></i> Algorithmic Remediation Roadmap</h5>
+                                    <p class="text-secondary small mb-3">Priority score prioritization rankings: ranked by Exploitability, Residual Risk, Criticality, and Attack Surface Weights.</p>
+                                    
+                                    <button class="btn btn-info btn-sm mb-4" onclick="fetchRemediationPlan()">
+                                        <i class="bi bi-journal-medical me-1"></i> Generate Remediation Roadmap
+                                    </button>
+                                    
+                                    <div class="d-none" id="remediationPlanDisplay">
+                                        <div class="alert alert-secondary bg-dark border-secondary text-light">
+                                            <div class="d-flex justify-content-between mb-3 border-bottom border-secondary pb-2">
+                                                <span class="fw-bold"><i class="bi bi-clipboard2-pulse"></i> Remediation Target: <span id="remedDevice">Device</span></span>
+                                            </div>
+                                            
+                                            <h6 class="text-danger fw-bold"><i class="bi bi-lightning-fill"></i> Immediate Action Plan (SLA: 24h - Priority >= 80)</h6>
+                                            <div class="table-responsive mb-4">
+                                                <table class="table table-grc table-sm mb-0">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Control</th>
+                                                            <th>Domain</th>
+                                                            <th>Priority Score</th>
+                                                            <th>Technical Vulnerability Impact</th>
+                                                            <th>Remediation Fix Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="remedImmediateBody">
+                                                        <tr><td colspan="5" class="text-secondary small">No immediate mitigations required.</td></tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <h6 class="text-warning fw-bold"><i class="bi bi-calendar-event-fill"></i> Short-Term Action Plan (SLA: 7 Days - Priority 40-79)</h6>
+                                            <div class="table-responsive mb-4">
+                                                <table class="table table-grc table-sm mb-0">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Control</th>
+                                                            <th>Domain</th>
+                                                            <th>Priority Score</th>
+                                                            <th>Technical Vulnerability Impact</th>
+                                                            <th>Remediation Fix Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="remedShortBody">
+                                                        <tr><td colspan="5" class="text-secondary small">No short-term mitigations required.</td></tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <h6 class="text-info fw-bold"><i class="bi bi-calendar2-week-fill"></i> Medium/Long-Term Plan (SLA: 30-90 Days - Priority < 40)</h6>
+                                            <div class="table-responsive">
+                                                <table class="table table-grc table-sm mb-0">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Control</th>
+                                                            <th>Domain</th>
+                                                            <th>Priority Score</th>
+                                                            <th>Technical Vulnerability Impact</th>
+                                                            <th>Remediation Fix Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="remedMediumBody">
+                                                        <tr><td colspan="5" class="text-secondary small">No medium-term mitigations required.</td></tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </main>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==========================================
+    MODAL DIALOGS
+    ========================================== -->
+
+    <!-- Modal: Register Device -->
+    <div class="modal fade" id="registerDeviceModal" tabindex="-1" aria-labelledby="registerDeviceModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="registerDeviceModalLabel"><i class="bi bi-plus-circle text-primary me-2"></i> Register Tizen Device</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="registerDeviceForm" onsubmit="handleRegisterDevice(event)">
+                        <div class="mb-3">
+                            <label for="deviceName" class="form-label text-secondary small">Device Asset Name</label>
+                            <input type="text" class="form-control form-control-grc" id="deviceName" placeholder="e.g. Seoul-Signage-01" required>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label for="deviceModel" class="form-label text-secondary small">Model</label>
+                                <input type="text" class="form-control form-control-grc" id="deviceModel" placeholder="e.g. QM55R Smart Signage" required>
+                            </div>
+                            <div class="col">
+                                <label for="deviceSerial" class="form-label text-secondary small">Serial Number</label>
+                                <input type="text" class="form-control form-control-grc" id="deviceSerial" placeholder="e.g. QM55R-2026-X123" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="deviceFirmware" class="form-label text-secondary small">Firmware Version</label>
+                            <input type="text" class="form-control form-control-grc" id="deviceFirmware" placeholder="e.g. T-MS12WWD-1004.2" required>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label for="deviceIp" class="form-label text-secondary small">IP Address</label>
+                                <input type="text" class="form-control form-control-grc" id="deviceIp" placeholder="192.168.10.45">
+                            </div>
+                            <div class="col">
+                                <label for="deviceMac" class="form-label text-secondary small">MAC Address</label>
+                                <input type="text" class="form-control form-control-grc" id="deviceMac" placeholder="00:11:22:33:44:55">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small">Device Group / Building Location</label>
+                            <select class="form-select form-control-grc" id="deviceGroupSelect" required>
+                                <!-- Selections filled dynamically -->
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2">Submit Asset Registration</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal: Launch Assessment -->
+    <div class="modal fade" id="newAssessmentModal" tabindex="-1" aria-labelledby="newAssessmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="newAssessmentModalLabel"><i class="bi bi-journal-plus text-primary me-2"></i> Launch Compliance Assessment</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="newAssessmentForm" onsubmit="handleNewAssessment(event)">
+                        <div class="mb-4">
+                            <label for="assessmentDeviceSelect" class="form-label text-secondary small">Select Target Tizen Device</label>
+                            <select class="form-select form-control-grc" id="assessmentDeviceSelect" required>
+                                <!-- Options populated dynamically -->
+                            </select>
+                            <div class="form-text text-secondary small mt-2">Launching an assessment will dynamically spin up all 130 UTSCF controls for compliance auditing.</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2">Initialize UTSCF Assessment</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal: Edit Finding / Upload Evidence -->
+    <div class="modal fade" id="editFindingModal" tabindex="-1" aria-labelledby="editFindingModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="editFindingModalLabel"><i class="bi bi-shield-check text-primary me-2"></i> Update Control Compliance & GRC Workflow</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-4">
+                        <div class="col-md-6 border-end border-secondary">
+                            <div class="mb-3">
+                                <div class="badge bg-primary mb-2 font-monospace" id="findingModalControlId">UTSCF-BHS-01</div>
+                                <h5 class="fw-bold text-white" id="findingModalControlName">Secure Boot status</h5>
+                                <div class="text-secondary small mb-3" id="findingModalControlDesc">Description here</div>
+                            </div>
+                            
+                            <form id="editFindingForm" onsubmit="handleEditFinding(event)">
+                                <input type="hidden" id="findingModalId">
+                                
+                                <div class="mb-3">
+                                    <label for="findingStatusSelect" class="form-label text-secondary small">Compliance Status</label>
+                                    <select class="form-select form-control-grc" id="findingStatusSelect" required>
+                                        <option value="PASS">PASS</option>
+                                        <option value="FAIL">FAIL</option>
+                                        <option value="PARTIALLY_COMPLIANT">Partially Compliant</option>
+                                        <option value="NOT_APPLICABLE">Not Applicable</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="findingComments" class="form-label text-secondary small">Audit Comments</label>
+                                    <textarea class="form-control form-control-grc" id="findingComments" rows="3" placeholder="Verify settings details..."></textarea>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary w-100 py-2">Save Status Override</button>
+                            </form>
+                            
+                            <div class="mt-4 pt-3 border-top border-secondary">
+                                <h6 class="text-white small mb-3"><i class="bi bi-person-fill-gear"></i> Workflow Tasks Assignment</h6>
+                                <div class="input-group">
+                                    <select class="form-select form-control-grc" id="workflowAssignSelect">
+                                        <option value="">-- Choose Security Analyst --</option>
+                                    </select>
+                                    <button class="btn btn-outline-info" onclick="assignWorkflow()">Assign</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h6 class="text-white mb-3"><i class="bi bi-shield-exclamation text-warning"></i> Risk Exception Request (Waiver)</h6>
+                            <form id="exceptionForm" onsubmit="handleExceptionRequest(event)">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="exc_active">
+                                    <label class="form-check-label text-white small" for="exc_active">Active Risk Accepted Waiver</label>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-secondary small">Exception/Business Reason</label>
+                                    <input type="text" class="form-control form-control-grc" id="exc_reason" placeholder="e.g. Critical signage hardware incompatibility">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-secondary small">Duration (Days)</label>
+                                    <input type="number" class="form-control form-control-grc" id="exc_duration" value="30">
+                                </div>
+                                <button type="submit" class="btn btn-outline-warning btn-sm w-100 mb-4">Grant Risk Exception</button>
+                            </form>
+
+                            <div class="border-top border-secondary pt-3">
+                                <h6 class="text-white mb-2"><i class="bi bi-file-earmark-arrow-up text-primary"></i> Upload Audit Evidence File</h6>
+                                <form id="uploadEvidenceForm" onsubmit="handleUploadEvidence(event)">
+                                    <div class="input-group mb-2">
+                                        <input class="form-control form-control-grc" type="file" id="evidenceFileInput" required>
+                                        <button type="submit" class="btn btn-primary btn-sm">Upload</button>
+                                    </div>
+                                    <div class="form-text text-secondary small">Accepts files to verify compliance status. Calculates SHA-256 integrity hash.</div>
+                                </form>
+                                <div class="mt-3">
+                                    <span class="text-secondary small">Uploaded Evidence:</span>
+                                    <ul class="list-group list-group-flush bg-transparent mt-1" id="uploadedEvidenceList">
+                                        <!-- Dynamic List -->
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- GRC Controller JS -->
+    <script src="/static/app.js"></script>
+</body>
+</html>

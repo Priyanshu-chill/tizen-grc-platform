@@ -1,0 +1,32 @@
+{
+  "policy_version": "1.0.0",
+  "framework_version": "3.0.0",
+  "control_id": "UTSCF-KOH-03",
+  "domain": "Kernel & OS Hardening",
+  "category": "OS Configuration",
+  "name": "Address Space Randomization",
+  "description": "Verify ASLR is fully enabled to prevent buffer injection exploits.",
+  "security_objective": "Protect Tizen OS devices against security vulnerabilities by enforcing proper address space randomization settings.",
+  "business_justification": "Fulfills regulatory requirements and mitigates risk vectors related to Tizen OS device operations.",
+  "verification_logic": "sdb shell tizen_check_security --control=UTSCF-KOH-03",
+  "expected_value": "kernel.randomize_va_space=2",
+  "severity": "MEDIUM",
+  "control_weight": 2.0,
+  "validation_type": "AUTOMATED",
+  "related_root_causes": [
+    "OS Configuration",
+    "Kernel & OS Hardening Hardening"
+  ],
+  "related_cves": "N/A",
+  "related_mitre_techniques": "T1055",
+  "standards_mapping": {
+    "nist_csf_2": "PR.IP-1",
+    "iso27001_2022": "A.8.19",
+    "cis_v8": "5.2",
+    "owasp_iot": "I2",
+    "iec62443": "4-2-CR-2.1"
+  },
+  "remediation_guide": "{\"business_impact\": \"Risk of configuration drift on Address Space Randomization. Attackers could exploit these unhardened parameters to launch privileges escalation actions.\", \"technical_impact\": \"Failed control allows unapproved subsystem bindings, breaking sandboxing isolation or inter-process communications.\", \"fix_steps\": \"Modify system properties. If automated, configure the parameter `kernel.randomize_va_space=2` in your config payload and deploy.\", \"config_example\": \"kernel.randomize_va_space=2\", \"validation_steps\": \"sdb shell tizen_check_security --control=UTSCF-KOH-03\", \"cost\": \"LOW\", \"estimated_time_hours\": 4}",
+  "policy_owner": "Security Administrator",
+  "review_frequency_days": 90
+}

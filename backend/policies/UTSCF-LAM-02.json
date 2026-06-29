@@ -1,0 +1,32 @@
+{
+  "policy_version": "1.0.0",
+  "framework_version": "3.0.0",
+  "control_id": "UTSCF-LAM-02",
+  "domain": "Logging, Audit & Monitoring",
+  "category": "Security Ops",
+  "name": "Syslog secure forwarding",
+  "description": "Ensure log events are pushed to an encrypted SIEM endpoint.",
+  "security_objective": "Protect Tizen OS devices against security vulnerabilities by enforcing proper syslog secure forwarding settings.",
+  "business_justification": "Fulfills regulatory requirements and mitigates risk vectors related to Tizen OS device operations.",
+  "verification_logic": "sdb shell tizen_check_security --control=UTSCF-LAM-02",
+  "expected_value": "syslog_forwarding=enabled",
+  "severity": "MEDIUM",
+  "control_weight": 2.0,
+  "validation_type": "AUTOMATED",
+  "related_root_causes": [
+    "Security Ops",
+    "Logging, Audit & Monitoring Hardening"
+  ],
+  "related_cves": "N/A",
+  "related_mitre_techniques": "T1071",
+  "standards_mapping": {
+    "nist_csf_2": "DE.AE-2",
+    "iso27001_2022": "A.8.15",
+    "cis_v8": "8.2",
+    "owasp_iot": "I8",
+    "iec62443": "4-2-CR-2.11"
+  },
+  "remediation_guide": "{\"business_impact\": \"Risk of configuration drift on Syslog secure forwarding. Attackers could exploit these unhardened parameters to launch privileges escalation actions.\", \"technical_impact\": \"Failed control allows unapproved subsystem bindings, breaking sandboxing isolation or inter-process communications.\", \"fix_steps\": \"Modify system properties. If automated, configure the parameter `syslog_forwarding=enabled` in your config payload and deploy.\", \"config_example\": \"syslog_forwarding=enabled\", \"validation_steps\": \"sdb shell tizen_check_security --control=UTSCF-LAM-02\", \"cost\": \"MEDIUM\", \"estimated_time_hours\": 4}",
+  "policy_owner": "Security Administrator",
+  "review_frequency_days": 90
+}

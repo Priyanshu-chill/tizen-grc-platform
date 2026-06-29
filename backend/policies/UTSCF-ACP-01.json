@@ -1,0 +1,32 @@
+{
+  "policy_version": "1.0.0",
+  "framework_version": "3.0.0",
+  "control_id": "UTSCF-ACP-01",
+  "domain": "Access Control & Privilege Management",
+  "category": "Identity & Access",
+  "name": "Cynara Default Rules",
+  "description": "Restore Cynara access DB policies to default restrictive parameters.",
+  "security_objective": "Protect Tizen OS devices against security vulnerabilities by enforcing proper cynara default rules settings.",
+  "business_justification": "Fulfills regulatory requirements and mitigates risk vectors related to Tizen OS device operations.",
+  "verification_logic": "sdb shell tizen_check_security --control=UTSCF-ACP-01",
+  "expected_value": "cynara.db.policy=RESTRICT",
+  "severity": "LOW",
+  "control_weight": 1.0,
+  "validation_type": "AUTOMATED",
+  "related_root_causes": [
+    "Identity & Access",
+    "Access Control & Privilege Management Hardening"
+  ],
+  "related_cves": "CVE-2021-25424",
+  "related_mitre_techniques": "T1548",
+  "standards_mapping": {
+    "nist_csf_2": "PR.AC-1",
+    "iso27001_2022": "A.5.15",
+    "cis_v8": "6.1",
+    "owasp_iot": "I3",
+    "iec62443": "4-2-CR-2.1"
+  },
+  "remediation_guide": "{\"business_impact\": \"Risk of configuration drift on Cynara Default Rules. Attackers could exploit these unhardened parameters to launch privileges escalation actions.\", \"technical_impact\": \"Failed control allows unapproved subsystem bindings, breaking sandboxing isolation or inter-process communications.\", \"fix_steps\": \"Modify system properties. If automated, configure the parameter `cynara.db.policy=RESTRICT` in your config payload and deploy.\", \"config_example\": \"cynara.db.policy=RESTRICT\", \"validation_steps\": \"sdb shell tizen_check_security --control=UTSCF-ACP-01\", \"cost\": \"LOW\", \"estimated_time_hours\": 2}",
+  "policy_owner": "Security Administrator",
+  "review_frequency_days": 90
+}

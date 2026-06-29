@@ -1,0 +1,32 @@
+{
+  "policy_version": "1.0.0",
+  "framework_version": "3.0.0",
+  "control_id": "UTSCF-ACP-04",
+  "domain": "Access Control & Privilege Management",
+  "category": "Identity & Access",
+  "name": "Privilege application boundaries",
+  "description": "Verify that manifest privileges restrict direct hardware API binds.",
+  "security_objective": "Protect Tizen OS devices against security vulnerabilities by enforcing proper privilege application boundaries settings.",
+  "business_justification": "Fulfills regulatory requirements and mitigates risk vectors related to Tizen OS device operations.",
+  "verification_logic": "sdb shell tizen_check_security --control=UTSCF-ACP-04",
+  "expected_value": "manifest_privs=restricted",
+  "severity": "MEDIUM",
+  "control_weight": 2.0,
+  "validation_type": "AUTOMATED",
+  "related_root_causes": [
+    "Identity & Access",
+    "Access Control & Privilege Management Hardening"
+  ],
+  "related_cves": "N/A",
+  "related_mitre_techniques": "T1548",
+  "standards_mapping": {
+    "nist_csf_2": "PR.AC-1",
+    "iso27001_2022": "A.8.2",
+    "cis_v8": "6.1",
+    "owasp_iot": "I3",
+    "iec62443": "4-2-CR-2.1"
+  },
+  "remediation_guide": "{\"business_impact\": \"Risk of configuration drift on Privilege application boundaries. Attackers could exploit these unhardened parameters to launch privileges escalation actions.\", \"technical_impact\": \"Failed control allows unapproved subsystem bindings, breaking sandboxing isolation or inter-process communications.\", \"fix_steps\": \"Modify system properties. If automated, configure the parameter `manifest_privs=restricted` in your config payload and deploy.\", \"config_example\": \"manifest_privs=restricted\", \"validation_steps\": \"sdb shell tizen_check_security --control=UTSCF-ACP-04\", \"cost\": \"LOW\", \"estimated_time_hours\": 4}",
+  "policy_owner": "Security Administrator",
+  "review_frequency_days": 90
+}

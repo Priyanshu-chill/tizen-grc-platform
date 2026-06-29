@@ -1,0 +1,32 @@
+{
+  "policy_version": "1.0.0",
+  "framework_version": "3.0.0",
+  "control_id": "UTSCF-DAM-02",
+  "domain": "Device Administration & MDM",
+  "category": "Endpoint Management",
+  "name": "Screen passcode policy",
+  "description": "Enforce minimum PIN size of 6 characters and complexity rules.",
+  "security_objective": "Protect Tizen OS devices against security vulnerabilities by enforcing proper screen passcode policy settings.",
+  "business_justification": "Fulfills regulatory requirements and mitigates risk vectors related to Tizen OS device operations.",
+  "verification_logic": "sdb shell tizen_check_security --control=UTSCF-DAM-02",
+  "expected_value": "passcode_size=6",
+  "severity": "MEDIUM",
+  "control_weight": 2.0,
+  "validation_type": "AUTOMATED",
+  "related_root_causes": [
+    "Endpoint Management",
+    "Device Administration & MDM Hardening"
+  ],
+  "related_cves": "N/A",
+  "related_mitre_techniques": "T1110",
+  "standards_mapping": {
+    "nist_csf_2": "PR.PS-3",
+    "iso27001_2022": "A.8.5",
+    "cis_v8": "13.2",
+    "owasp_iot": "I7",
+    "iec62443": "4-2-CR-1.1"
+  },
+  "remediation_guide": "{\"business_impact\": \"Risk of configuration drift on Screen passcode policy. Attackers could exploit these unhardened parameters to launch privileges escalation actions.\", \"technical_impact\": \"Failed control allows unapproved subsystem bindings, breaking sandboxing isolation or inter-process communications.\", \"fix_steps\": \"Modify system properties. If automated, configure the parameter `passcode_size=6` in your config payload and deploy.\", \"config_example\": \"passcode_size=6\", \"validation_steps\": \"sdb shell tizen_check_security --control=UTSCF-DAM-02\", \"cost\": \"LOW\", \"estimated_time_hours\": 4}",
+  "policy_owner": "Security Administrator",
+  "review_frequency_days": 90
+}

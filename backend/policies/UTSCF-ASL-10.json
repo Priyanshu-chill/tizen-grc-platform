@@ -1,0 +1,32 @@
+{
+  "policy_version": "1.0.0",
+  "framework_version": "3.0.0",
+  "control_id": "UTSCF-ASL-10",
+  "domain": "Application Sandboxing & Lifecycle",
+  "category": "App Security",
+  "name": "Auxiliary validation rule for Application Sandboxing & Lifecycle #10",
+  "description": "Verify configuration matches parameters for UTSCF-ASL-10 in Application Sandboxing & Lifecycle category.",
+  "security_objective": "Protect Tizen OS devices against security vulnerabilities by enforcing proper auxiliary validation rule for application sandboxing & lifecycle #10 settings.",
+  "business_justification": "Fulfills regulatory requirements and mitigates risk vectors related to Tizen OS device operations.",
+  "verification_logic": "Audit device settings screen manually.",
+  "expected_value": null,
+  "severity": "LOW",
+  "control_weight": 1.0,
+  "validation_type": "MANUAL",
+  "related_root_causes": [
+    "App Security",
+    "Application Sandboxing & Lifecycle Hardening"
+  ],
+  "related_cves": "N/A",
+  "related_mitre_techniques": "T1059.001",
+  "standards_mapping": {
+    "nist_csf_2": "PR.IP-2",
+    "iso27001_2022": "A.8.19",
+    "cis_v8": "10.1",
+    "owasp_iot": "I10",
+    "iec62443": "4-2-CR-2.1"
+  },
+  "remediation_guide": "{\"business_impact\": \"Risk of configuration drift on Auxiliary validation rule for Application Sandboxing & Lifecycle #10. Attackers could exploit these unhardened parameters to launch privileges escalation actions.\", \"technical_impact\": \"Failed control allows unapproved subsystem bindings, breaking sandboxing isolation or inter-process communications.\", \"fix_steps\": \"Modify system properties. If automated, configure the parameter `status=active` in your config payload and deploy.\", \"config_example\": \"status=enabled\", \"validation_steps\": \"Audit device settings screen manually.\", \"cost\": \"MEDIUM\", \"estimated_time_hours\": 2}",
+  "policy_owner": "Security Administrator",
+  "review_frequency_days": 90
+}

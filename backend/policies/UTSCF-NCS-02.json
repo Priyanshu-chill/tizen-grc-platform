@@ -1,0 +1,32 @@
+{
+  "policy_version": "1.0.0",
+  "framework_version": "3.0.0",
+  "control_id": "UTSCF-NCS-02",
+  "domain": "Network & Communication Security",
+  "category": "Network Hardening",
+  "name": "Bluetooth discoverable limits",
+  "description": "Ensure Bluetooth discovery is disabled when not active.",
+  "security_objective": "Protect Tizen OS devices against security vulnerabilities by enforcing proper bluetooth discoverable limits settings.",
+  "business_justification": "Fulfills regulatory requirements and mitigates risk vectors related to Tizen OS device operations.",
+  "verification_logic": "sdb shell tizen_check_security --control=UTSCF-NCS-02",
+  "expected_value": "bluetooth_discoverable=0",
+  "severity": "HIGH",
+  "control_weight": 3.0,
+  "validation_type": "AUTOMATED",
+  "related_root_causes": [
+    "Network Hardening",
+    "Network & Communication Security Hardening"
+  ],
+  "related_cves": "CVE-2018-16264, CVE-2018-16266",
+  "related_mitre_techniques": "T1437",
+  "standards_mapping": {
+    "nist_csf_2": "PR.DS-2",
+    "iso27001_2022": "A.8.20",
+    "cis_v8": "12.1",
+    "owasp_iot": "I6",
+    "iec62443": "4-2-CR-2.1"
+  },
+  "remediation_guide": "{\"business_impact\": \"Risk of configuration drift on Bluetooth discoverable limits. Attackers could exploit these unhardened parameters to launch privileges escalation actions.\", \"technical_impact\": \"Failed control allows unapproved subsystem bindings, breaking sandboxing isolation or inter-process communications.\", \"fix_steps\": \"Modify system properties. If automated, configure the parameter `bluetooth_discoverable=0` in your config payload and deploy.\", \"config_example\": \"bluetooth_discoverable=0\", \"validation_steps\": \"sdb shell tizen_check_security --control=UTSCF-NCS-02\", \"cost\": \"LOW\", \"estimated_time_hours\": 6}",
+  "policy_owner": "Security Administrator",
+  "review_frequency_days": 90
+}

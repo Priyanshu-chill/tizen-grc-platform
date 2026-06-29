@@ -1,0 +1,32 @@
+{
+  "policy_version": "1.0.0",
+  "framework_version": "3.0.0",
+  "control_id": "UTSCF-KOH-05",
+  "domain": "Kernel & OS Hardening",
+  "category": "OS Configuration",
+  "name": "Memory allocation safety check",
+  "description": "Enforce usage of safe allocator libraries to avoid integer overflows.",
+  "security_objective": "Protect Tizen OS devices against security vulnerabilities by enforcing proper memory allocation safety check settings.",
+  "business_justification": "Fulfills regulatory requirements and mitigates risk vectors related to Tizen OS device operations.",
+  "verification_logic": "sdb shell tizen_check_security --control=UTSCF-KOH-05",
+  "expected_value": "allocator=safe",
+  "severity": "CRITICAL",
+  "control_weight": 8.0,
+  "validation_type": "AUTOMATED",
+  "related_root_causes": [
+    "OS Configuration",
+    "Kernel & OS Hardening Hardening"
+  ],
+  "related_cves": "CVE-2021-22684",
+  "related_mitre_techniques": "T1211",
+  "standards_mapping": {
+    "nist_csf_2": "PR.IP-1",
+    "iso27001_2022": "A.8.25",
+    "cis_v8": "16.1",
+    "owasp_iot": "I2",
+    "iec62443": "4-2-CR-2.1"
+  },
+  "remediation_guide": "{\"business_impact\": \"Risk of configuration drift on Memory allocation safety check. Attackers could exploit these unhardened parameters to launch privileges escalation actions.\", \"technical_impact\": \"Failed control allows unapproved subsystem bindings, breaking sandboxing isolation or inter-process communications.\", \"fix_steps\": \"Modify system properties. If automated, configure the parameter `allocator=safe` in your config payload and deploy.\", \"config_example\": \"allocator=safe\", \"validation_steps\": \"sdb shell tizen_check_security --control=UTSCF-KOH-05\", \"cost\": \"HIGH\", \"estimated_time_hours\": 16}",
+  "policy_owner": "Security Administrator",
+  "review_frequency_days": 90
+}
