@@ -1140,7 +1140,7 @@ async function downloadReport(format) {
     
     if (format === "html") {
         // Open the HTML report in a new tab for easy viewing/printing
-        window.open(`/api/reports/${id}/html`, '_blank');
+        window.open(`/api/reports/${id}/html?token=${localStorage.getItem('token')}`, '_blank');
         return;
     }
     

@@ -546,7 +546,13 @@ def download_csv_report(assessment_id: int, db: Session = Depends(get_db), curre
     )
 
 @app.get("/api/reports/{assessment_id}/html", response_class=HTMLResponse)
-def download_html_report(assessment_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def download_html_report(assessment_id: int, token: Optional[str] = None, db: Session = Depends(get_db)):
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    from auth import decode_access_token
+    payload = decode_access_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Not authenticated")
     html_data = generate_html_report(db, assessment_id)
     return html_data
 
