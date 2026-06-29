@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>UTSGRCP v3.0 Thesis Documentation</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            color: #334155;
+            line-height: 1.6;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 40px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 50px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        h1 {
+            color: #0f172a;
+            font-size: 32px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 12px;
+            margin-top: 30px;
+        }
+        h2 {
+            color: #1e293b;
+            font-size: 22px;
+            margin-top: 30px;
+            border-left: 4px solid #3b82f6;
+            padding-left: 12px;
+        }
+        h3 {
+            color: #334155;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        pre {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            border: 1px solid #e2e8f0;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            color: #0f172a;
+        }
+        .table-doc {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .table-doc td {
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+        .table-doc tr:nth-child(even) {
+            background: #f8fafc;
+        }
+        .print-btn {
+            background: #3b82f6;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 30px;
+        }
+        .print-btn:hover {
+            background: #2563eb;
+        }
+        @media print {
+            body { padding: 0; background: #fff; }
+            .container { box-shadow: none; padding: 0; }
+            .print-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+        <h1>UTSGRCP v3.0: M.Tech Research & Development Thesis Documentation</h1>
+
+This documentation serves as the master technical reference and thesis guide for the <strong>Enterprise Universal Tizen Security Governance, Risk & Compliance Platform (UTSGRCP) Version 3.0</strong>.
+
+---
+
+<h2>Section 1: R&D Context of Tizen OS</h2>
+
+<h3>1.1 Architectural History & Core Structure</h3>
+Tizen OS is a Linux-kernel-based open-source operating system. Its ancestry traces back to the merger of several mobile Linux projects:
+<li><strong>MeeGo</strong> (a joint venture of Intel's Moblin and Nokia's Maemo)</li>
+<li><strong>LiMo</strong> (Linux Mobile foundation)</li>
+<li><strong>Tizen Project</strong> (launched by Samsung and Intel in 2011, managed by the Linux Foundation)</li>
+
+<pre><code>text
+       ┌────────────────────────────────────────────────────────┐
+       │             Tizen Web & Native Applications            │
+       ├────────────────────────────────────────────────────────┤
+       │             Tizen Application Framework API            │
+       ├───────────────────┬───────────────────┬────────────────┤
+       │  Base Middleware  │  Security System  │  Connectivity  │
+       │  (D-Bus, Systemd) │  (SMACK & Cynara) │ (WiFi, BlueZ)  │
+       ├───────────────────┴───────────────────┴────────────────┤
+       │             Linux Kernel (with SMACK LSM)              │
+       └────────────────────────────────────────────────────────┘
+</code></pre>
+
+<h3>1.2 Tizen Security Subsystems</h3>
+Unlike standard Linux systems which rely solely on discretionary access controls (DAC - user/group permissions), Tizen enforces two major mandatory security components:
+1. <strong>SMACK (Simplified Mandatory Access Control Kernel)</strong>:
+   * Implemented as a Linux Security Module (LSM).
+   * Dictates file and process access based on cryptographic labels (e.g. process with label `UserApp` cannot access file with label `SystemKey` unless an explicit SMACK rule permits it).
+2. <strong>Cynara</strong>:
+   * Tizen's decentralized user-space security policy database.
+   * Resolves application permission queries (e.g. "Does application X have permission to access the camera API?").
+   * Access decisions are stored in a high-speed cached database `/var/lib/cynara/`.
+
+---
+
+<h2>Section 2: Samsung Tizen Device Ecosystem</h2>
+
+Samsung utilizes Tizen OS across a massive fleet of consumer and commercial B2B devices:
+
+<li><strong>Samsung Smart Kiosks (KM24A Series)</strong>: Used in retail, quick-service restaurants, and hospitality for point-of-sale checkouts.</li>
+<li><strong>Samsung Smart Signage (QM/QB Series)</strong>: Large-format displays used in airports, shopping malls, and corporate offices.</li>
+<li><strong>Smart TVs & Hospitality TVs</strong>: Interactive displays deployed in hotel rooms and consumer living rooms.</li>
+<li><strong>Smart Home Appliances (Family Hub)</strong>: Refrigerator panels, smart washing machines, and local IoT hubs.</li>
+<li><strong>Wearables</strong>: Samsung Gear and early Galaxy Watch generations ran Tizen Wearable profiles.</li>
+
+---
+
+<h2>Section 3: Project Motivation (Why we built this)</h2>
+
+1. <strong>Security Gaps in Commercial IoT</strong>: Displays and kiosks are often placed in physically unsecured public areas. If an attacker accesses the physical ports or exploits unpatched network services, they can gain root access to the corporate network.
+2. <strong>The "SDB" Vulnerability Vector</strong>: Smart Development Bridge (SDB) is Tizen's debugger port (running on port `26101`). If left active after installation, anyone on the network can execute commands, bypass app signature checks, and upload malware.
+3. <strong>No Existing Tooling</strong>: Enterprise security tools (like Nessus, Qualys, or Defender) do not parse Tizen-specific controls (e.g., Cynara db rules, SMACK settings, or Knox warranty bits). UTSGRCP bridges this gap by providing dedicated GRC analytics for Tizen OS.
+
+---
+
+<h2>Section 4: Universal Tizen Security Compliance Framework (UTSCF)</h2>
+
+The platform evaluates devices against exactly <strong>130 controls</strong> across <strong>10 security domains</strong>:
+
+<table class='table-doc'><tr><td>Domain</td><td>Focus Area</td><td>Example Check</td></tr><tr><td><strong>BHS</strong></td><td>Boot & Hardware Security</td><td>Secure Boot state & Knox warranty bit verification.</td></tr><tr><td><strong>KOH</strong></td><td>Kernel & OS Hardening</td><td>ASLR kernel parameters & SMACK LSM mounting.</td></tr><tr><td><strong>ACP</strong></td><td>Access Control & Privilege</td><td>Cynara policy DB configurations & root shell limitations.</td></tr><tr><td><strong>ASL</strong></td><td>App Sandboxing & Lifecycle</td><td>Package developer signatures & SMACK directory bounds.</td></tr><tr><td><strong>CKM</strong></td><td>Crypto & Key Management</td><td>FIPS-compliant cipher usage & secure hardware keystores.</td></tr><tr><td><strong>NCS</strong></td><td>Network & Communication</td><td>Enforcing TLS 1.3 & disabling Bluetooth discoverable state.</td></tr><tr><td><strong>DAM</strong></td><td>Device Administration</td><td>MDM enrollment status & passkey complexity checks.</td></tr><tr><td><strong>LAM</strong></td><td>Logging, Audit & Monitoring</td><td>auditd service state & SIEM syslog forwarding.</td></tr><tr><td><strong>PVM</strong></td><td>Patch & Vulnerability</td><td>Firmware build checks & OTA verification.</td></tr><tr><td><strong>PIO</strong></td><td>Peripheral & I/O Security</td><td>USB port blockouts & SDB debugging lockdown.</td></tr></table>
+
+---
+
+<h2>Section 5: Technical Reference Architecture</h2>
+
+The platform's processing pipeline and persistence layers are structured to ensure security and scalability:
+
+<pre><code>text
+              Presentation Layer (Glassmorphic Web SPA)
+                          │
+                          ▼
+                    REST API Layer (FastAPI Controllers)
+                          │
+                          ▼
+            Authentication Layer (JWT & Role-Based Access Control)
+                          │
+                          ▼
+            Configuration Collection Layer (Pluggable Abstraction)
+                          │
+                          ▼
+             Policy Engine (Policy-as-Code & JSON Schemas)
+                          │
+                          ▼
+                Compliance Engine (Rule Evaluator)
+                          │
+         ┌────────────────┼────────────────┐
+         ▼                ▼                ▼
+    Risk Engine      Drift Engine    Evidence Engine
+         └────────────────┼────────────────┘
+                          │
+                          ▼
+               Security Posture Engine (Weighted Math)
+                          │
+                          ▼
+         Recommendation & Prioritization (Priority Index)
+                          │
+                          ▼
+                 Reporting Engine (PDF/HTML/CSV)
+                          │
+                          ▼
+                 Persistence Layer (SQLite/PostgreSQL & Evidence Files)
+                          │
+                          ▼
+                 Executive Dashboard (Console)
+</code></pre>
+
+---
+
+<h2>Section 6: Operational Workflow Sequences</h2>
+
+<h3>6.1 Telemetry Ingestion Flow</h3>
+1. <strong>Collector Telemetry Capture</strong>: Telemetry is gathered from the physical kiosk (via SDB, Config Files, or MDM APIs).
+2. <strong>FastAPI Submission</strong>: The collector POSTs payload checks to the API `/api/assessments/{id}/scan`.
+3. <strong>Database Write</strong>: The findings are committed to the SQL database.
+4. <strong>Scoring Engine</strong>: Evaluates Posture, Attack Surface, and Risk scores, writing updates back to the database.
+5. <strong>Drift Detection</strong>: Emits an alert if any finding degrades (e.g., changes from `PASS` to `FAIL`).
+
+<h3>6.2 Risk Exception (Waiver) Lifecycle</h3>
+1. <strong>Analyst Request</strong>: Analyst selects a failed control in the UI and requests a Risk Exception.
+2. <strong>Parameter Definition</strong>: Specifies the business justification and expiry duration (in days).
+3. <strong>Engine Update</strong>: Backend flags the finding's `risk_accepted` flag.
+4. <strong>Recalculation</strong>: The <strong>Residual Risk</strong> drops to `0.0`, reflecting temporary risk acceptance.
+5. <strong>Expiry</strong>: When the time limit expires, the waiver is cancelled, and the risk metric resets.
+
+---
+
+<h2>Section 7: Mathematical Engines</h2>
+
+<h3>7.1 Inherent Risk Formula</h3>
+$$Risk_{\text{inherent}} = Impact_{\text{severity}} \times Weight_{\text{control}} \times Criticality_{\text{device}}$$
+
+<h3>7.2 Residual Risk Formula</h3>
+$$Risk_{\text{residual}} = Risk_{\text{inherent}} \times (1.0 - Effectiveness_{\text{control}}) \times Waiver_{\text{aging}}$$
+*Where $Waiver_{\text{aging}} = 0.0$ if a risk exception is active, otherwise $1.0$.*
+
+<h3>7.3 Security Posture Score (0-100)</h3>
+$$Posture = 0.35 \cdot Compliance + 0.25 \cdot (100 - Risk_{\text{residual}}) + 0.15 \cdot Patch + 0.15 \cdot Evidence + 0.10 \cdot (100 - AttackSurface)$$
+
+<h3>7.4 Attack Surface Index</h3>
+$$AttackSurface = \sum_{c \in Categories} Weight_{c} \cdot Score_{c}$$
+*Categories are: Network (25%), Wireless (15%), Physical (20%), Application (20%), and Configuration (20%).*
+
+<h3>7.5 Recommendation Prioritization Index</h3>
+$$PriorityScore = Risk_{\text{residual}} \times Exploitability \times \frac{AttackSurface}{10.0}$$
+*Critical prioritization SLA timelines: Immediate (Priority >= 80), Short-Term (40-79), and Long-Term (< 40).*
+
+    </div>
+</body>
+</html>
