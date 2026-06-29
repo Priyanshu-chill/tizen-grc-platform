@@ -151,35 +151,76 @@ def recalculate_assessment_risks(db: Session, assessment_id: int):
     db.commit()
 
 
-# --- ATTACK SURFACE MANAGEMENT ENGINE ---
-def calculate_attack_surface(db: Session, assessment_id: int) -> float:
+def calculate_attack_surface_categories(db: Session, assessment_id: int) -> dict:
     """
-    Computes Tizen device Attack Surface Score (0-100) based on failed
-    peripheral, network, and development port control configurations.
+    Computes detailed attack surface scores across 5 exposure categories:
+    Network, Wireless, Physical, Application, and Configuration.
     """
     findings = db.query(Finding).filter(Finding.assessment_id == assessment_id).all()
     
-    score = 0.0
-    # Map failed controls to specific attack surface weights
-    exposure_rules = {
-        "UTSCF-PIO-01": 15.0, # USB Debugging / SDB active
-        "UTSCF-PIO-02": 10.0, # USB mounting allowed
-        "UTSCF-NCS-03": 15.0, # Bluetooth Discoverable
-        "UTSCF-NCS-05": 20.0, # SSH/Telnet enabled
-        "UTSCF-BHS-01": 15.0, # Secure Boot disabled
-        "UTSCF-PVM-01": 15.0  # Outdated firmware (firmware exploits)
+    categories = {
+        "network": 0.0,
+        "wireless": 0.0,
+        "physical": 0.0,
+        "application": 0.0,
+        "configuration": 0.0
     }
     
     for f in findings:
         cid = f.control.control_id
         if f.status == "FAIL":
-            if cid in exposure_rules:
-                score += exposure_rules[cid]
-            elif cid.startswith("UTSCF-NCS") or cid.startswith("UTSCF-PIO"):
-                # Minor network/peripheral failures
-                score += 4.0
+            # Network Exposure
+            if cid == "UTSCF-NCS-05": # SSH/Telnet enabled
+                categories["network"] += 20.0
+            elif cid.startswith("UTSCF-NCS") and cid != "UTSCF-NCS-03":
+                categories["network"] += 4.0
                 
-    return min(100.0, score)
+            # Wireless Exposure
+            if cid == "UTSCF-NCS-03": # Bluetooth discoverable
+                categories["wireless"] += 15.0
+            elif cid == "UTSCF-NCS-02":
+                categories["wireless"] += 5.0
+                
+            # Physical Exposure
+            if cid == "UTSCF-PIO-02": # USB mounting allowed
+                categories["physical"] += 10.0
+            elif cid.startswith("UTSCF-PIO") and cid != "UTSCF-PIO-01":
+                categories["physical"] += 4.0
+                
+            # Application Exposure
+            if cid == "UTSCF-ASL-02" or cid == "UTSCF-ASL-04":
+                categories["application"] += 10.0
+            elif cid.startswith("UTSCF-ASL"):
+                categories["application"] += 3.0
+                
+            # Configuration Exposure
+            if cid == "UTSCF-PIO-01": # SDB Debugging enabled
+                categories["configuration"] += 15.0
+            elif cid == "UTSCF-BHS-01": # Secure Boot disabled
+                categories["configuration"] += 15.0
+            elif cid == "UTSCF-PVM-01": # Outdated firmware
+                categories["configuration"] += 15.0
+                
+    # Normalize categories to 100.0 max
+    for k in categories:
+        categories[k] = min(100.0, categories[k])
+        
+    return categories
+
+def calculate_attack_surface(db: Session, assessment_id: int) -> float:
+    """
+    Computes overall Tizen device Attack Surface Score (0-100) based on category weights.
+    """
+    cats = calculate_attack_surface_categories(db, assessment_id)
+    # Weighted average of categories
+    overall = (
+        cats["network"] * 0.25 + 
+        cats["wireless"] * 0.15 + 
+        cats["physical"] * 0.20 + 
+        cats["application"] * 0.20 + 
+        cats["configuration"] * 0.20
+    )
+    return min(100.0, overall)
 
 
 # --- DRIFT DETECTION ENGINE ---
