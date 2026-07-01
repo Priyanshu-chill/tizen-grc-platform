@@ -87,149 +87,260 @@
 <body>
     <div class="container">
         <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
-        <h1>UTSGRCP v3.0: Enterprise Universal Tizen Security Governance, Risk & Compliance Platform</h1>
-<h2>Comprehensive Research, Development & Implementation Project Report</h2>
+        <h1>SAMSUNG TIZEN OS</h1>
+<h2>Architecture, System Design, and Security Analysis</h2>
+<h3>A Technical GRC Implementation & Research Report</h3>
+
+<strong>Prepared by:</strong> Sangam  
+<strong>Affiliation:</strong> IISER Bhopal  
+<strong>Version:</strong> 1.0  
+<strong>Date:</strong> July 2026  
 
 ---
 
-<h2>1. Executive Summary</h2>
-The <strong>Universal Tizen Security Governance, Risk & Compliance Platform (UTSGRCP) Version 3.0</strong> is an enterprise-class security governance framework developed to audit, monitor, and manage the security posture of Samsung Tizen OS-based IoT fleets (including Smart Kiosks, Smart Signage, and connected displays). This report details the theoretical architecture of Tizen OS, its core process and memory management layers, its security enforcement modules (SMACK and Cynara), and the comprehensive compliance platform implemented to govern Tizen endpoints.
+<h2>Table of Contents</h2>
+1. [Abstract](#abstract)
+2. [1. Introduction](#1-introduction)
+   - [1.1 Motivation for the Study](#11-motivation-for-the-study)
+   - [1.2 Objectives](#12-objectives)
+   - [1.3 Scope](#13-scope)
+3. [2. History and Evolution of Tizen OS](#2-history-and-evolution-of-tizen-os)
+4. [3. System Architecture](#3-system-architecture)
+   - [3.1 The Four-Layer Model](#31-the-four-layer-model)
+   - [3.2 Architectural Security Implication](#32-architectural-security-implication)
+5. [4. Process Management](#4-process-management)
+   - [4.1 Process Lifecycle and Categories](#41-process-lifecycle-and-categories)
+   - [4.2 The Process Control Block (PCB)](#42-the-process-control-block-pcb)
+6. [5. Processor Shielding](#5-processor-shielding)
+   - [5.1 Mechanisms](#51-mechanisms)
+   - [5.2 Representative Use Cases](#52-representative-use-cases)
+7. [6. Memory Management](#6-memory-management)
+   - [6.1 Memory Constraints and Design Rationale](#61-memory-constraints-and-design-rationale)
+   - [6.2 Linux Kernel Memory Mechanisms Used by Tizen](#62-linux-kernel-memory-mechanisms-used-by-tizen)
+   - [6.3 Tizen-Specific Memory Management Techniques](#63-tizen-specific-memory-management-techniques)
+   - [6.4 Application-Level Memory Management](#64-application-level-memory-management)
+8. [7. Security Architecture](#7-security-architecture)
+   - [7.1 SMACK — Simplified Mandatory Access Control Kernel](#71-smack--simplified-mandatory-access-control-kernel)
+   - [7.2 Network Security — Transport Layer Security (TLS)](#72-network-security--transport-layer-security-tls)
+   - [7.3 CryptoCore and FIPS 140-3 Certification](#73-cryptocore-and-fips-140-3-certification)
+   - [7.4 Memory-Based Security Boundaries](#74-memory-based-security-boundaries)
+   - [7.5 Processor Shielding as a Security-Adjacent Control](#75-processor-shielding-as-a-security-adjacent-control)
+   - [7.6 Consolidated View of Security Controls](#76-consolidated-view-of-security-controls)
+   - [7.7 Note on Scope](#77-note-on-scope)
+9. [8. Strengths and Limitations](#8-strengths-and-limitations)
+   - [8.1 Strengths](#81-strengths)
+   - [8.2 Limitations](#82-limitations)
+10. [9. Implemented Solution: UTSGRCP v3.0](#9-implemented-solution-utsgrcp-v30)
+11. [10. Conclusion](#10-conclusion)
+12. [References](#references)
 
 ---
 
-<h2>2. Theoretical Overview & Architectural Evolution of Tizen OS</h2>
+<h2>Abstract</h2>
+Samsung Tizen OS is a Linux-kernel-based operating system engineered for a heterogeneous set of resource-constrained devices, spanning smart televisions, wearables, in-vehicle infotainment systems, home appliances, and Internet of Things (IoT) endpoints. This report presents a consolidated technical analysis of Tizen OS, synthesising its historical evolution, its four-layer hierarchical architecture, its process and resource management model, its processor-shielding mechanisms for real-time workloads, its memory management strategy, and its security architecture. 
 
-<h3>2.1 Historical Context</h3>
-Tizen OS represents the culmination of several Linux-based mobile operating system projects:
-<li><strong>MeeGo (2010)</strong>: A joint venture merging Intel's Moblin and Nokia's Maemo projects.</li>
-<li><strong>LiMo (Linux Mobile)</strong>: A consortium of mobile operators.</li>
-<li><strong>Tizen Project (2011)</strong>: Launched by Samsung and Intel, hosted by the Linux Foundation.</li>
-Today, Tizen OS serves as Samsung’s unified operating system for consumer TVs, commercial digital signage, and connected home appliances.
-
-<h3>2.2 Hierarchical Layered Architecture</h3>
-Tizen OS is organized into four separate, hierarchical layers to isolate core operating system functions from user-facing apps:
-
-<pre><code>text
-┌────────────────────────────────────────────────────────┐
-│ 1. Application Layer (Native .tpk / Web HTML5/JS)      │
-├────────────────────────────────────────────────────────┤
-│ 2. Framework Layer (APIs, Device Management, AraDB)    │
-├────────────────────────────────────────────────────────┤
-│ 3. Core Components Layer (VFS, Protocols, JerryScript) │
-├────────────────────────────────────────────────────────┤
-│ 4. OS Layer (Linux Kernel, drivers, HAL, SMACK)        │
-└────────────────────────────────────────────────────────┘
-</code></pre>
-
-#### 2.2.1 OS Layer
-The lowest layer that directly interfaces with the hardware. It consists of the <strong>Linux Kernel</strong> (responsible for scheduling, task management, inter-process communication, and timers), memory management, power management, hardware drivers, and the <strong>Hardware Abstraction Layer (HAL)</strong> which allows Tizen to run across different processors (like ARM x86/x64).
-
-#### 2.2.2 Core Components Layer
-Positioned above the OS layer, this layer provides system-level services:
-<li><strong>File Systems</strong>: Virtual File System (VFS) and <strong>SmartFS</strong> (specifically optimized for flash memory, partitioning flash devices into dynamically allocated, chained sectors).</li>
-<li><strong>Protocols</strong>: Network layers (IPv4, IPv6, 6LoWPAN for constrained low-power IoT networks, IPSP for IPv6 over BLE, and Thread mesh protocols).</li>
-<li><strong>Security & Crypto</strong>: TLS encryption and security daemons.</li>
-<li><strong>Execution Engines</strong>: <strong>JerryScript</strong>, a highly optimized JavaScript engine designed for resource-limited microcontrollers (running with <64KB RAM and 200KB flash).</li>
-
-#### 2.2.3 Framework Layer
-Serves as the mediator between application interfaces and system components. It provides standardized APIs, the <strong>Device Management Framework</strong>, database access (AraStorage), and <strong>IoTBus</strong> (to facilitate system I/O with peripherals and sensors).
-
-#### 2.2.4 Application Layer
-The highest layer, supporting:
-1. <strong>Native Applications</strong>: Written in C/C++ using Tizen Native APIs for high performance and raw memory control.
-2. <strong>Web Applications</strong>: Built using HTML5, CSS, and JavaScript running inside a secure web runtime environment.
-All apps follow a strict <strong>Application Lifecycle</strong> managed by the framework: *Launch $\rightarrow$ Running $\rightarrow$ Paused $\rightarrow$ Terminated*.
+The security discussion covers Simplified Mandatory Access Control Kernel (SMACK) based access control, Transport Layer Security (TLS) for network communications, the FIPS 140-3 certified CryptoCore cryptographic library introduced with Tizen 9.0, memory-isolation techniques used in Tizen RT, and the structural security implications of the Process Control Block (PCB) and cgroup-based resource isolation. This research is mapped directly to our implemented <strong>Universal Tizen Security Governance, Risk & Compliance Platform (UTSGRCP)</strong>, demonstrating automated configuration collections, weighted attack surface indexes, and policy-as-code auditing frameworks.
 
 ---
 
-<h2>3. Deep Dive: Process & Memory Management in Tizen OS</h2>
+<h2>1. Introduction</h2>
+Samsung Tizen OS is a Linux-based operating system designed to run across a broad and heterogeneous device ecosystem under a single, customisable software platform. Its design goals centre on four pillars: stability, resource efficiency, security, and cross-device scalability.
 
-<h3>3.1 Process Management & Control Block (PCB)</h3>
-Each process in Tizen OS is a resource-managed execution unit. The operating system utilizes a <strong>Process Control Block (PCB)</strong> stored securely within the kernel space to track and schedule execution states:
+<h3>1.1 Motivation for the Study</h3>
+Understanding Tizen OS at an architectural level is important both for platform engineers who build applications on top of it and for security researchers who must evaluate its threat surface. As Samsung continues to deploy Tizen across billions of connected TV and IoT units, and as it phases in stronger cryptographic protections (CryptoCore, FIPS 140-3) from 2025 onward, a structured understanding of how the OS layers, process model, memory subsystem, and access-control mechanisms interact becomes essential for any security assessment of Tizen-based products.
 
-<pre><code>text
-┌────────────────────────────────────────────────┐
-│             Process Control Block              │
-├───────────────────────┬────────────────────────┤
-│  Process ID (PID)     │  Process State         │
-├───────────────────────┼────────────────────────┤
-│  Program Counter      │  CPU Registers         │
-├───────────────────────┼────────────────────────┤
-│  Memory Limits        │  List of Open Files    │
-└───────────────────────┴────────────────────────┘
-</code></pre>
-The <strong>Application Framework</strong> manages the process lifecycle, using the `resourced` daemon to control priorities and terminate background processes during low-memory conditions to prevent system-wide degradation.
+<h3>1.2 Objectives</h3>
+<li>Trace the historical evolution of Tizen OS from its origins as "Mobile Linux" through MeeGo to the present-day platform.</li>
+<li>Describe the four-layer hierarchical architecture of Tizen OS and the responsibilities of each layer.</li>
+<li>Explain process management, the Process Control Block (PCB), and processor shielding for real-time workloads.</li>
+<li>Explain the memory management model, including Linux kernel mechanisms and Tizen-specific optimisations.</li>
+<li>Provide a consolidated analysis of Tizen's security architecture, including SMACK, TLS, and CryptoCore.</li>
+<li>Detail the implemented UTSGRCP v3.0 GRC framework and benchmark results.</li>
 
-<h3>3.2 Processor Shielding & CPU Pinning</h3>
-For high-performance applications (such as 4K video playback on Smart TVs or real-time control loops in IoT devices), Tizen supports <strong>Processor Shielding</strong>:
-<li><strong>CPU Core Affinity</strong>: Crucial system tasks are allocated to dedicated, shielded CPU cores. Other background tasks or user applications are blocked from interrupting these cores.</li>
-<li><strong>Real-Time Scheduling</strong>: High-priority tasks utilize deterministic scheduling policies such as `SCHED_FIFO` or `SCHED_RR`, preventing preemption by standard application threads.</li>
-<li><strong>CPU Isolation via Cgroups</strong>: Non-critical applications are restricted to specific CPU cores, leaving the shielded cores free of interference.</li>
-
-<h3>3.3 Layered Memory Management</h3>
-Tizen OS borrows core memory allocation and paging concepts from the Linux kernel, adapted for resource-constrained embedded systems:
-<li><strong>Page Allocation & kswapd</strong>: The kernel monitors free memory pages. When memory drops below a certain threshold, the `kswapd` daemon wakes up to reclaim memory. Swapped-out anonymous pages are compressed and stored in <strong>zRAM</strong>.</li>
-<li><strong>Memory Control Groups (cgroups)</strong>: Tizen configures memory cgroups (`CONFIG_CGROUPS` and `CONFIG_CGROUP_SCHED` in the kernel config) to group processes and enforce hard memory limits on a per-group basis. This prevents a single memory-leaking app from exhausting the entire system's RAM.</li>
-<li><strong>Out-of-Memory (OOM) Killer</strong>: If `kswapd` fails to free sufficient RAM, the kernel's Low Memory Killer (LMK) terminates low-priority background processes.</li>
-<li><strong>Memory Protection (Tizen RT)</strong>: In embedded IoT deployments using the microkernel-based Tizen RT profile, memory protection is enforced via hardware MPU/MMU units, providing thread-level memory isolation.</li>
+<h3>1.3 Scope</h3>
+This report is scoped to the technical architecture of Tizen OS as documented in the source research materials. It covers core architectural structures, privilege bounds, scheduling, memory constraints, and FIPS validation.
 
 ---
 
-<h2>4. Security Aspects of Tizen OS</h2>
-Security is implemented as a core architectural constraint rather than an add-on, divided into two primary subsystems:
+<h2>2. History and Evolution of Tizen OS</h2>
+Tizen's lineage traces back to 2007, when Intel announced a project internally referred to as "Mobile Linux." This project evolved over more than a decade through several mergers and re-brandings before arriving at the Tizen platform used today.
 
-<h3>4.1 SMACK (Simplified Mandatory Access Control Kernel)</h3>
-SMACK is a Linux Security Module (LSM) that provides mandatory access control (MAC). 
-<li>Each subject (process) and object (file, directory, socket) is assigned a cryptographic label.</li>
-<li>The kernel checks access rules based on these labels rather than user permissions (e.g. process with label `UserApp` cannot read a file labeled `SystemKey` unless an explicit SMACK rule is registered).</li>
-<li>This sandboxing mechanism prevents compromised applications from escalating privileges or accessing unauthorized system resources.</li>
+<table class='table-doc'><tr><td>Year</td><td>Milestone</td></tr><tr><td><strong>2007</strong></td><td>Intel announces the "Mobile Linux" project.</td></tr><tr><td><strong>2009</strong></td><td>Project updated to version 2.0, based on Fedora Linux; handed to the Linux Foundation.</td></tr><tr><td><strong>2010</strong></td><td>Merger with Nokia's Maemo (a Debian-based distribution) forms MeeGo.</td></tr><tr><td><strong>2011</strong></td><td>Linux Foundation launches Tizen as the successor to MeeGo.</td></tr><tr><td><strong>2012</strong></td><td>Sprint Corporation and Samsung Electronics join as major supporters; Automotive Grade Linux announces a Tizen base.</td></tr><tr><td><strong>2017</strong></td><td>The Samsung Z4, the last Tizen-based smartphone, is released.</td></tr><tr><td><strong>2018</strong></td><td>Tizen reaches 21% share of smart TVs sold, per Strategy Analytics.</td></tr><tr><td><strong>2021</strong></td><td>Samsung agrees to merge Tizen features with Google's Wear OS 3 for wearables; Tizen's app store closes permanently (Dec 31, 2021).</td></tr><tr><td><strong>2024</strong></td><td>Tizen 9.0 released for Smart TV models.</td></tr><tr><td><strong>2025</strong></td><td>CryptoCore (FIPS 140-3 certified) integrated into Tizen OS; 7-year OTA update commitment for TVs made after 2023.</td></tr></table>
 
-<h3>4.2 Cynara Policy Resolver</h3>
-Cynara is Tizen’s user-space security policy database.
-<li>It answers permission queries from applications (e.g. "Does application `X` have permission to access the local network?").</li>
-<li>It caches decisions in a high-speed database (`/var/lib/cynara/`) for fast, low-latency checking.</li>
-<li><strong>FIPS 140-3 Compliance</strong>: Recent updates (starting Tizen 9.0) integrate the <strong>CryptoCore</strong> library, a FIPS 140-3 certified software cryptographic library used to encrypt and decrypt information during transmission and storage.</li>
+A notable strategic shift occurred in 2021, when Samsung elected to continue using Tizen for smart TVs while adopting Google's Wear OS 3 as the base for its wearable line (starting with the Galaxy Watch 4), rather than continuing Tizen as a standalone wearable OS. This reflects a broader industry pattern of platform consolidation for wearables while retaining vendor-specific Linux-based platforms for large-screen and embedded devices, where customisation and lightweight footprint remain a competitive advantage.
 
 ---
 
-<h2>5. The Implemented GRC Solution: UTSGRCP v3.0</h2>
+<h2>3. System Architecture</h2>
+Tizen OS is structured as four separate, hierarchical layers, each with a well-defined responsibility. This layered separation of concerns is central to both the platform's maintainability and its security model, since privilege and trust boundaries are enforced primarily at layer boundaries.
 
-<h3>5.1 Project Motivation</h3>
-While Tizen OS provides robust local security controls (SMACK, Cynara, and Knox), there is a lack of centralized <strong>Governance, Risk & Compliance (GRC)</strong> tooling to monitor large fleets of Tizen devices. If a kiosk's debugger port (SDB) is left active, or if Cynara policies are misconfigured, the device becomes a pivot point for network intrusions. 
+<h3>3.1 The Four-Layer Model</h3>
 
-UTSGRCP v3.0 solves this by providing continuous compliance monitoring, attack surface analysis, and risk exception management.
+<table class='table-doc'><tr><td>Layer</td><td>Position</td><td>Primary Responsibility</td></tr><tr><td><strong>OS Layer</strong></td><td>Lowest</td><td>Kernel scheduling, memory and power management, drivers, HAL, security, syscalls</td></tr><tr><td><strong>Core Components Layer</strong></td><td>Second</td><td>File systems (VFS, SmartFS), networking/IoT protocol stacks, TLS, execution engines</td></tr><tr><td><strong>Framework Layer</strong></td><td>Third</td><td>Standardised APIs, device management, database storage (AraStorage), UI framework, IoTBus</td></tr><tr><td><strong>Application Layer</strong></td><td>Highest</td><td>Native (C/C++) and Web (HTML5/CSS/JS) applications visible to the end user</td></tr></table>
 
-<h3>5.2 Technical Architecture</h3>
-The platform is built using a decoupled, enterprise-grade architecture:
+#### 3.1.1 OS Layer
+The OS Layer is the most fundamental layer, directly controlling hardware resources and providing core system services. Its constituent components include the Kernel (task/thread scheduling, inter-process communication, timer management), Memory Management (allocation, conflict avoidance, optimisation), Power Management (sleep-mode control), Drivers (hardware communication for Wi-Fi, Bluetooth, storage), the Architecture (Arch) module (processor compatibility, e.g. ARM), a Debug subsystem, Syscall handling, a Security module, and the Hardware Abstraction Layer (HAL), which decouples the OS from hardware-specific implementation details so that Tizen can run across diverse silicon without code changes.
 
-<pre><code>text
-  Presentation Layer (HTML5 & Custom CSS Dashboard Console)
-                          │
-                          ▼
-            REST API Layer (FastAPI & JWT Auth)
-                          │
-                          ▼
-        Telemetry Ingestion Layer (Pluggable Collectors)
-                          │
-                          ▼
-      Governance Engines (Compliance, Risk, Drift, Posture)
-                          │
-                          ▼
-            Data Layer (SQLite & Evidence Files)
-</code></pre>
+#### 3.1.2 Core Components Layer
+Positioned between the OS Layer and the Framework Layer, the Core Components Layer supplies the infrastructure needed for the raw hardware capabilities exposed by the OS Layer to be developed into a secure, connected environment. It contains file systems such as the Virtual File System (VFS) and the Smart File System (SmartFS), the OCF infrastructure for secure IP communication, and a substantial networking stack: IPv4/IPv6, 6LoWPAN, IPSP (IPv6 over BLE), Wi-Fi, BLE, IEEE 802.15.4, and Thread. TLS is implemented at this layer to encrypt web, email, messaging, and VoIP traffic. JerryScript, a lightweight JavaScript engine capable of running on devices with under 64 KB of RAM and 200 KB of flash, is also part of this layer, enabling scripting on severely constrained microcontrollers.
 
-<h3>5.3 Key Implementations</h3>
-1. <strong>Pluggable Collector Layer ([collectors.py](file:///C:/Users/priya/.gemini/antigravity/scratch/tizen-grc-platform/backend/collectors.py))</strong>: Decouples data ingestion into standalone modules (e.g. `SdbCollector` connecting to port `26101` on physical or emulator loopbacks, `ConfigFileCollector` parsing XML/JSON settings dumps, and `MdmCollector` pulling from Samsung Knox Manage APIs).
-2. <strong>Weighted Attack Surface Calculation ([engines.py](file:///C:/Users/priya/.gemini/antigravity/scratch/tizen-grc-platform/backend/engines.py))</strong>: Evaluates security exposure as a weighted average across Network (25%), Wireless (15%), Physical (20%), Application (20%), and Configuration (20%) categories.
-3. <strong>Advanced Risk Exception Waivers ([engines.py](file:///C:/Users/priya/.gemini/antigravity/scratch/tizen-grc-platform/backend/engines.py))</strong>: Allows administrators to approve time-bound risk exceptions. During the waiver period, the residual risk score of the specific control drops to `0.0`, raising the overall posture score.
-4. <strong>Security Hardening Middleware ([main.py](file:///C:/Users/priya/.gemini/antigravity/scratch/tizen-grc-platform/backend/main.py))</strong>: Implements secure HTTP headers (CSP, HSTS, X-Frame-Options) and an in-memory API rate limiter to protect endpoints.
-5. <strong>Printable Audit Reports ([reports.py](file:///C:/Users/priya/.gemini/antigravity/scratch/tizen-grc-platform/backend/reports.py))</strong>: Generates styled HTML reports containing audit metadata, remediation instructions, and <strong>SHA-256 evidence integrity hashes</strong> to prevent data tampering.
-6. <strong>Performance Scalability Simulator ([test_performance.py](file:///C:/Users/priya/.gemini/antigravity/scratch/tizen-grc-platform/backend/test_performance.py))</strong>: Evaluates the platform's performance under load, showing it can process compliance calculations for <strong>500 virtual Tizen devices</strong> (65,000 findings) concurrently at an average latency of <strong>~550ms per device</strong>.
+#### 3.1.3 Framework Layer
+The Framework Layer mediates between user applications and the underlying system, exposing standardised APIs for application management, multimedia, network communication, and UI components. It includes the Device Management Framework (connectivity monitoring, power management, error handling), the Database Framework (AraStorage, for local, secure, persistent data storage), IoTBus (System I/O for sensors and IoT devices), POSIX API support (for Linux application compatibility), and the UI Framework (window management, event handling, graphics rendering).
+
+#### 3.1.4 Application Layer
+The Application Layer is what end users interact with directly. It supports two application models: Native Applications, written in C/C++ against Tizen Native APIs for high performance, hardware interaction, and multimedia processing; and Web Applications, written in HTML5, CSS, and JavaScript, which trade some performance for cross-platform portability and sandboxed execution. .NET applications using C# are also supported through a separate runtime path. Every application follows a defined lifecycle — Launch, Running, Paused, Terminated — coordinated by the Application Framework in the layer below.
+
+<h3>3.2 Architectural Security Implication</h3>
+The strict layering of Tizen OS is itself a security-relevant design choice: applications in the Application Layer cannot access hardware or the network stack directly and must pass through the Framework Layer's standardised APIs, which in turn depend on Core Components and OS Layer services. This chokepoint design allows access-control mechanisms such as SMACK to be enforced consistently at well-defined interface boundaries rather than being scattered ad hoc throughout the system.
 
 ---
 
-<h2>6. Conclusion</h2>
-UTSGRCP v3.0 establishes a robust, highly scalable framework for auditing and governing Tizen OS endpoints. By translating physical device configurations (e.g. SMACK rules, Cynara database entries, and active debugging settings) into standardized GRC metrics, the platform provides security administrators with real-time, actionable insights, maintaining full data integrity and enterprise security standards.
+<h2>4. Process Management</h2>
+Tizen OS defines a process as a resource-managed, Linux-based execution unit. Process creation, prioritisation, and termination are coordinated by the Application Framework together with the resourced daemon and systemd.
+
+<h3>4.1 Process Lifecycle and Categories</h3>
+<li><strong>Foreground processes</strong>: high priority, associated with active user interaction.</li>
+<li><strong>Background processes</strong>: lower priority, and are candidates for termination by the Low Memory Killer (LMK) if system memory is constrained.</li>
+<li>Native applications are packaged as `.tpk` files; Web applications are typically defined via a `tizen-manifest.xml` file. Both are treated as distinct process types.</li>
+<li>System processes are managed by systemd, which controls process startup, monitoring, and termination for OS-level services.</li>
+
+Resource allocation between foreground and background processes is enforced using Linux cgroups, allowing Tizen to categorise and constrain processes so that a single background task cannot starve foreground, user-facing workloads of CPU or memory.
+
+<h3>4.2 The Process Control Block (PCB)</h3>
+The Process Control Block is the kernel data structure Tizen uses to track every running process. It is stored as part of the operating system — commonly at the top of the process's kernel stack — and is inaccessible to normal user-space code, which is itself a basic but important security boundary, since a compromised application cannot directly manipulate its own or another process's scheduling state.
+
+<table class='table-doc'><tr><td>PCB Field</td><td>Description</td></tr><tr><td><strong>Process State</strong></td><td>Running, Waiting, Ready, or Terminated</td></tr><tr><td><strong>PID</strong></td><td>Unique process identifier</td></tr><tr><td><strong>Program Counter</strong></td><td>Address of the next instruction to execute</td></tr><tr><td><strong>Registers</strong></td><td>CPU register values saved during a context switch</td></tr><tr><td><strong>Memory Limits</strong></td><td>Information from the memory management subsystem</td></tr><tr><td><strong>Open Files</strong></td><td>List of files currently opened by the process</td></tr></table>
+
+The Process Table aggregates the PCBs of all active processes, allowing the kernel to schedule, switch, and monitor resource usage across the system. Because the PCB carries memory-limit and open-file information alongside execution state, it functions as the low-level anchor point for both scheduling fairness and resource-based security controls.
+
+---
+
+<h2>5. Processor Shielding</h2>
+Processor shielding is the set of techniques Tizen OS uses to reserve CPU capacity for time-critical system activities, preventing background or lower-priority tasks from interfering with functions such as 4K video decoding, sensor-driven haptic feedback, or real-time control loops.
+
+<h3>5.1 Mechanisms</h3>
+
+<table class='table-doc'><tr><td>Technique</td><td>Implementation</td><td>Benefit</td></tr><tr><td><strong>CPU Core Affinity</strong></td><td>Critical tasks are pinned to a dedicated CPU core</td><td>Prevents interruption from unrelated workloads</td></tr><tr><td><strong>Real-Time Scheduling</strong></td><td>`SCHED_FIFO` / `SCHED_RR` scheduling policies</td><td>Highest priority, non-preemptive execution for critical tasks</td></tr><tr><td><strong>CPU Isolation (cgroups)</strong></td><td>Linux control groups isolate non-critical workloads to separate cores</td><td>Shielded cores run without background interference</td></tr><tr><td><strong>Kernel Extensions</strong></td><td>Real-time kernel patches on supported devices</td><td>Deterministic execution for time-critical input/sensor/multimedia functions</td></tr></table>
+
+<h3>5.2 Representative Use Cases</h3>
+<li><strong>Smart TVs</strong>: uninterrupted playback of high-resolution (e.g. 4K) video while other applications continue running in the background.</li>
+<li><strong>Smartwatches and wearables</strong>: real-time sensor management to sustain smooth haptic feedback without perceptible lag.</li>
+<li><strong>IoT devices</strong>: stable, low-jitter real-time control loops for actuation and monitoring tasks.</li>
+
+Processor shielding and the PCB are described in the source research as the two structural pillars underpinning Tizen's multitasking stability: the PCB gives the kernel a reliable record of every process's state, while shielding guarantees that CPU time for the most latency-sensitive tasks is not compromised by the fair-scheduling needs of everything else.
+
+---
+
+<h2>6. Memory Management</h2>
+
+<h3>6.1 Memory Constraints and Design Rationale</h3>
+Because Tizen targets devices where RAM directly affects manufacturing cost, Samsung has built a layered memory-management approach based on the Linux kernel. Typical Samsung Smart TV hardware specifies a minimum of 1.5 GB of RAM (shared with the OS itself) and a maximum in the 3+ GB range; legacy or lower-tier devices may have as little as 500 MB, which constrains how much re-rendering and UI complexity an application can safely perform.
+
+<h3>6.2 Linux Kernel Memory Mechanisms Used by Tizen</h3>
+<li><strong>Page allocation and kswapd</strong>: the kernel monitors free and "high" memory thresholds; when free memory runs low, `kswapd` begins reclaiming pages (via demand paging and zRAM compression) until the high watermark is restored.</li>
+<li><strong>Out-of-Memory (OOM) killer</strong>: when `kswapd` cannot free sufficient memory, the Linux Kernel Low Memory Killer (LMK) begins terminating processes to recover RAM.</li>
+<li><strong>Memory cgroups</strong>: enabled via the `CONFIG_CGROUPS` base feature and the `CONFIG_CGROUP_SCHED` option, allowing per-group memory constraints so that a single application cannot exhaust all system memory.</li>
+
+<h3>6.3 Tizen-Specific Memory Management Techniques</h3>
+
+#### 6.3.1 CGroups for Memory Isolation
+Tizen groups processes and applies memory-usage constraints on a per-group basis — for example, creating a dedicated memory cgroup for persistent background services — so that misbehaving or memory-hungry applications cannot degrade the entire system.
+
+#### 6.3.2 Memory Reclaiming
+Reclaiming happens both from idle-state background processes and through a kernel-level mechanism comparable to Linux's combined OOM-and-LRU (Least Recently Used) approach, which is particularly beneficial for low-RAM devices such as budget TVs and wearables.
+
+#### 6.3.3 Boot-Time Optimisation
+Tizen defers loading of non-essential services, performs parallel initialisation of independent subsystems, and minimises the initial memory footprint at boot, resulting in faster startup and lower initial RAM usage.
+
+#### 6.3.4 Memory Protection in Tizen RT
+For embedded and IoT variants (Tizen RT), memory protection is enforced using MPU/MMU hardware features, with thread-level memory isolation and fault isolation achieved through a microkernel architecture. This additional protection is not free: the source research quantifies the overhead at an additional 20–30% memory consumption compared to an unprotected configuration, illustrating a direct, measurable trade-off between security/reliability and resource efficiency on constrained hardware.
+
+<h3>6.4 Application-Level Memory Management</h3>
+At the application level, Tizen Studio's Dynamic Analyzer tool lets developers visualise memory usage over time, including Proportional Set Size (PSS), which accounts for shared memory correctly rather than over- or under-counting it. Developers are guided toward object reuse, avoiding excessive allocation/deallocation cycles, limiting DOM node counts in web applications, releasing decoder/buffer resources held by inactive video elements, and using Canvas-based rendering (packing graphics into a single DOM element) for complex interfaces such as Electronic Programme Guides (EPGs). The OS itself may also place applications into a sleep state or terminate them outright to reclaim memory, which places the burden on developers to prefer persistent storage over RAM for large datasets.
+
+---
+
+<h2>7. Security Architecture</h2>
+Security in Tizen OS is not a single subsystem but a set of coordinated mechanisms spanning access control, network encryption, cryptographic services, and memory isolation, layered across the architecture described in Chapter 3.
+
+<h3>7.1 SMACK — Simplified Mandatory Access Control Kernel</h3>
+SMACK is the primary access-control mechanism in Tizen OS. It enforces mandatory access control (as opposed to purely discretionary, owner-defined permissions), giving each application an isolated execution environment that prevents unauthorised access to system resources and data belonging to other applications. Because permissions are permission-based and scoped to only what an application declares it needs, SMACK is designed to make it structurally difficult for malware or a compromised application to escalate access beyond its declared resource footprint.
+
+SMACK's effectiveness depends on the layered architecture described in Chapter 3: because applications cannot reach hardware or system resources except through Framework Layer APIs, SMACK policy can be enforced consistently at those API boundaries rather than requiring every application-level code path to independently implement access checks.
+
+<h3>7.2 Network Security — Transport Layer Security (TLS)</h3>
+At the Core Components Layer, Tizen implements TLS (and DTLS for datagram/constrained scenarios) to protect data in transit. While TLS's best-known role is securing web-application traffic between browser-style runtimes and servers, the source material notes it is also applied to email, messaging, and VoIP communications carried over the platform's networking stack, giving Tizen a consistent encryption layer across the diverse protocol set it supports (HTTP, OCF, IPv4/IPv6, 6LoWPAN, Wi-Fi, BLE, Thread, and IEEE 802.15.4).
+
+<h3>7.3 CryptoCore and FIPS 140-3 Certification</h3>
+Beginning in 2025, Samsung committed to fully integrating CryptoCore — a software cryptographic library used to encrypt and decrypt information both in transit and at rest — into Tizen OS. CryptoCore is certified under FIPS 140-3 by the U.S. National Institute of Standards and Technology (NIST), which is significant because FIPS 140-3 is a recognised baseline for cryptographic module assurance in regulated and enterprise procurement contexts. Paired with Samsung's commitment to provide OTA security updates for seven years on TVs manufactured after 2023, this represents a meaningful lengthening of the platform's security-supported lifecycle relative to typical consumer-electronics update practices.
+
+<h3>7.4 Memory-Based Security Boundaries</h3>
+Security and memory management intersect in two ways described in the source research. First, Tizen RT's MPU/MMU-based thread isolation and microkernel-based fault isolation (Section 6.3.4) prevent a fault or compromise in one thread or component from corrupting the memory of another — at the cost of 20–30% additional memory overhead, an explicit and quantified trade-off. Second, the Process Control Block (Section 4.2) is stored within the kernel and is inaccessible to normal user-space processes, which prevents user-space code from tampering with scheduling state, memory-limit metadata, or register contents belonging to other processes.
+
+<h3>7.5 Processor Shielding as a Security-Adjacent Control</h3>
+While processor shielding (Chapter 5) is primarily a real-time performance mechanism, CPU isolation via cgroups also has a security-relevant side effect: it limits the ability of a resource-exhaustion condition in one workload (whether malicious or accidental) to starve CPU-critical system functions such as security monitoring, input handling, or cryptographic operations running on a shielded core.
+
+<h3>7.6 Consolidated View of Security Controls</h3>
+
+<table class='table-doc'><tr><td>Control</td><td>Layer / Location</td><td>Threat Addressed</td></tr><tr><td><strong>SMACK</strong></td><td>OS Layer (Security module)</td><td>Unauthorised inter-application access to resources and data</td></tr><tr><td><strong>TLS / DTLS</strong></td><td>Core Components Layer</td><td>Interception or tampering with data in transit</td></tr><tr><td><strong>CryptoCore (FIPS 140-3)</strong></td><td>OS / Core Components</td><td>Weak or non-compliant encryption of stored and transmitted data</td></tr><tr><td><strong>PCB kernel isolation</strong></td><td>OS Layer (Kernel)</td><td>User-space tampering with process scheduling/state metadata</td></tr><tr><td><strong>MPU/MMU thread isolation</strong></td><td>OS Layer (Tizen RT)</td><td>Fault or compromise propagation between threads/components</td></tr><tr><td><strong>cgroup-based CPU/memory isolation</strong></td><td>OS Layer</td><td>Resource-exhaustion interference with critical or background tasks</td></tr></table>
+
+<h3>7.7 Note on Scope</h3>
+The source research documents describe Tizen's security architecture at the platform level; they do not include vulnerability-scanning tool output, penetration-test results, or CVE-level findings for specific Tizen builds. Any security assessment of a live Tizen deployment (for example, a Digital Signage installation) would need to be grounded in actual scan data, configuration review, and firmware analysis of the target devices, which is outside the scope of the material available for this report.
+
+---
+
+<h2>8. Strengths and Limitations</h2>
+
+<h3>8.1 Strengths</h3>
+
+<table class='table-doc'><tr><td>Strength</td><td>Description</td></tr><tr><td><strong>Performance & Efficiency</strong></td><td>Lightweight, well-optimised design focused on fast app launch and minimal battery drain.</td></tr><tr><td><strong>Security Model</strong></td><td>SMACK-based mandatory access control with isolated per-application environments; FIPS 140-3 certified cryptography via CryptoCore.</td></tr><tr><td><strong>Ecosystem Integration</strong></td><td>Seamless interoperability with other Samsung devices (screen mirroring, smart-home control).</td></tr><tr><td><strong>Multi-Device Support</strong></td><td>A single, customisable platform spans TVs, wearables, appliances, in-car systems, and IoT.</td></tr><tr><td><strong>Application Flexibility</strong></td><td>Supports Native (C/C++), Web (HTML5/CSS/JS), and .NET (C#) application development.</td></tr><tr><td><strong>Power Efficiency</strong></td><td>Optimised resource allocation extends battery life on wearables and IoT endpoints.</td></tr></table>
+
+<h3>8.2 Limitations</h3>
+
+<table class='table-doc'><tr><td>Limitation</td><td>Description</td></tr><tr><td><strong>Limited App Ecosystem</strong></td><td>Relatively small third-party application catalogue compared to Android; the standalone Tizen app store closed permanently at the end of 2021.</td></tr><tr><td><strong>Irregular Update Cadence</strong></td><td>Historically inconsistent OS update schedules outside the newer 7-year TV commitment.</td></tr><tr><td><strong>Limited Advanced Customisation</strong></td><td>The UI is customisable but with a narrower ceiling than fully open platforms.</td></tr><tr><td><strong>Limited Community Support</strong></td><td>A comparatively small developer/user community relative to Android reduces the availability of community-sourced troubleshooting.</td></tr><tr><td><strong>Bloatware</strong></td><td>A reputation for preloaded, non-removable applications on consumer devices.</td></tr><tr><td><strong>Security/Performance Trade-offs</strong></td><td>Stronger memory protection (Tizen RT) costs 20–30% additional memory; added security functions increase processing burden and require careful tuning to sustain performance.</td></tr></table>
+
+---
+
+<h2>9. Implemented Solution: UTSGRCP v3.0</h2>
+
+<h3>9.1 GRC System Architecture</h3>
+To bridge the gap between low-level Tizen OS security features (such as SMACK and Cynara) and enterprise security governance, we developed and implemented <strong>UTSGRCP v3.0</strong>. 
+
+The backend runs on <strong>FastAPI</strong> with a relational <strong>SQLite</strong> persistence layer, connecting directly to Tizen devices via the newly created pluggable <strong>Ingestion Collectors</strong> ([collectors.py](file:///C:/Users/priya/.gemini/antigravity/scratch/tizen-grc-platform/backend/collectors.py)).
+
+<h3>9.2 Key Mathematical Governance Engines</h3>
+<li><strong>Posture Score</strong>:</li>
+  $$Posture = 0.35 \cdot Compliance + 0.25 \cdot (100 - Risk_{\text{residual}}) + 0.15 \cdot Patch + 0.15 \cdot Evidence + 0.10 \cdot (100 - AttackSurface)$$
+<li><strong>Attack Surface Index</strong>:</li>
+  Weighted across five categories:
+  $$ASI = 0.25 \cdot Network + 0.15 \cdot Wireless + 0.20 \cdot Physical + 0.20 \cdot Application + 0.20 \cdot Configuration$$
+<li><strong>Time-Bound Risk Exception Waivers</strong>:</li>
+  Backend logic automatically drops the Residual Risk of a control to `0.0` for a user-specified active duration, updating all dashboard dials live.
+
+<h3>9.3 Live Hardware & Emulator Integration</h3>
+The platform has been successfully integrated with a running <strong>Tizen 10.0 x86_64 Emulator</strong> (listening on SDB port `26101` on loopback `127.0.0.1`). 
+
+When the user triggers a scan, the `SdbCollector` connects via the SDB command-line bridge to query settings like SDB debugging state (`vconf-get`) and SMACK mounts directly from the Tizen kernel, writing results and SHA-256 evidence integrity hashes to the database.
+
+---
+
+<h2>10. Conclusion</h2>
+Samsung Tizen OS is a mature, Linux-derived platform whose architecture is deliberately organised to balance three competing pressures: the need to run efficiently on memory- and power-constrained hardware, the need to guarantee real-time responsiveness for latency-sensitive functions, and the need to maintain a defensible security posture across a very large and fleet-wide deployment.
+
+By implementing <strong>UTSGRCP v3.0</strong>, we have shown that Tizen OS security can be centrally governed, audited, and managed. The platform's ability to ingest live SDB telemetry, compute weighted posture scores, manage exceptions, and output tamper-proof compliance reports makes it a comprehensive solution for enterprise IoT security operations.
+
+---
+
+<h2>References</h2>
+<li>[1] Hussein, M. I., Fayek, M. A., Wasfey, Y. M., & Ibrahim, I. M. (2025). Samsung Tizen OS: Overview, History, Features, and User Interface Design. Operating Systems Course Report, Faculty of Computer Science, Alexandria National University, Alexandria, Egypt. Instructor: Dr. Yasser Fouad.</li>
+<li>[2] Hussein, M. I., Fayek, M. A., Wasfey, Y. M., & Ibrahim, I. M. (2025). Samsung Tizen OS Structure: Four-Layer Architecture Analysis. Operating Systems Course Report, Faculty of Computer Science, Alexandria National University, Alexandria, Egypt. Instructor: Dr. Yasser Fouad.</li>
+<li>[3] Hussein, M. I., Fayek, M. A., Wasfey, Y. M., & Ibrahim, I. M. (2025). Processor Shielding in Samsung Tizen OS: Process Control Block and Real-Time Scheduling. Operating Systems Course Report, Faculty of Computer Science, Alexandria National University, Alexandria, Egypt. Instructor: Dr. Yasser Fouad.</li>
+<li>[4] Hussein, M. I., Fayek, M. A., Wasfey, Y. M., & Ibrahim, I. M. (2025). Memory Management in Tizen OS: Linux Kernel Integration, CGroups, and Optimisation. Operating Systems Course Report, Faculty of Computer Science, Alexandria National University, Alexandria, Egypt. Instructor: Dr. Yasser Fouad.</li>
+<li>[5] Tizen Project. Official Documentation. [https://docs.tizen.org/](https://docs.tizen.org/)</li>
+<li>[6] Linux Foundation. The Tizen Project.</li>
+<li>[7] Strategy Analytics. Smart TV Platform Market Report (2018).</li>
+<li>[8] National Institute of Standards and Technology (NIST). FIPS 140-3: Security Requirements for Cryptographic Modules.</li>
+<li>[9] Samsung Developer Portal. Tizen Native and Web Application Development Guides.</li>
 
     </div>
 </body>
